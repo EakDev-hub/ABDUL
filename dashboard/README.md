@@ -30,7 +30,6 @@ vue-docker-app/
 ├── public/                       # Public static files
 ├── docker/                       # Docker configuration
 │   ├── Dockerfile               # Production Dockerfile
-│   ├── Dockerfile.dev           # Development Dockerfile
 │   └── nginx/
 │       └── nginx.conf           # Nginx configuration
 ├── docker-compose.yml           # Docker Compose configuration
@@ -140,13 +139,7 @@ Vite configuration with Docker-specific settings:
 
 ### docker-compose.yml
 
-Orchestrates two services:
-
-**dev service:**
-- Uses `Dockerfile.dev`
-- Mounts source code as volume
-- Port: 5173
-- Enables hot reload
+Orchestrates the production service:
 
 **prod service:**
 - Uses production `Dockerfile`

@@ -63,15 +63,5 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build development image (for PR testing)
-        if: github.event_name == 'pull_request'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./dashboard
-          file: ./dashboard/docker/Dockerfile.dev
-          push: false
-          tags: dashboard:dev-test
-          cache-from: type=gha
-
       - name: Image digest
         run: echo ${{ steps.meta.outputs.digest }}

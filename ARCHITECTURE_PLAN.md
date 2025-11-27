@@ -25,7 +25,6 @@ vue-docker-project/
 ├── docker/                   # Docker configuration files
 │   ├── nginx/
 │   │   └── nginx.conf       # Nginx configuration for production
-│   ├── Dockerfile.dev       # Development Dockerfile
 │   └── Dockerfile           # Production Dockerfile
 ├── docker-compose.yml        # Docker Compose orchestration
 ├── .dockerignore            # Docker build exclusions
@@ -98,13 +97,7 @@ graph TB
 
 ### Services
 
-1. **dev** service:
-   - Uses `Dockerfile.dev`
-   - Mounts source code as volume
-   - Enables hot reload
-   - Port: `5173:5173`
-
-2. **prod** service:
+1. **prod** service:
    - Uses production `Dockerfile`
    - Multi-stage build
    - Optimized for size and performance
