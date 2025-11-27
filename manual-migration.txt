@@ -1,0 +1,10 @@
+CREATE SCHEMA hackathon;
+
+CREATE TABLE hackathon.healthcheck (
+	id int8 NOT NULL,
+	message varchar(255) NOT NULL
+);
+
+INSERT INTO hackathon.healthcheck
+(id, message)
+VALUES(1, 'hello');
