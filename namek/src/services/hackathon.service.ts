@@ -79,18 +79,26 @@ const mockResponse: SubmitResponse = {
 
 export const hackathonService = {
   async submitAnswer(data: SubmitRequest): Promise<SubmitResponse> {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      console.log('🚀 Submitting answer to API Gateway...', data)
 
-    // ใช้ mock data สำหรับทดสอบ
-    // เมื่อต้องการเรียก API จริง ให้ uncomment บรรทัดด้านล่างและ comment mock response
-    // const response = await apiClient.post<SubmitResponse>('/hackathon/submit', data)
-    // return response.data
+      // เรียก API จริง
+      const response = await apiClient.post<SubmitResponse>('/api/hackathon', data)
 
-    // Return mock data with team info
-    return {
-      ...mockResponse,
-      uuid: `${data.team}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      console.log('✅ API Response received:', response.data)
+      return response.data
+
+    } catch (error) {
+      console.error('❌ API call failed, falling back to mock data:', error)
+
+      // Fallback ไปใช้ mock data ถ้า API พัง
+      await new Promise(resolve => setTimeout(resolve, 1500))
+
+      console.log('📦 Using mock data as fallback')
+      return {
+        ...mockResponse,
+        uuid: `MOCK-${data.team}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      }
     }
   }
 }
