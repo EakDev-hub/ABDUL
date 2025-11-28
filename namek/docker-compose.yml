@@ -1,0 +1,14 @@
+version: '3'
+services:
+  namek:
+    build:
+      context: .
+      args:
+        BUILD_STAGE: local
+        namekVersion: '1.0.0'
+    hostname: default
+    ports:
+      - 3000:3000
+    command:
+      - bash
+      - ./run.bash
