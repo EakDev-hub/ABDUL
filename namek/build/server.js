@@ -22,12 +22,6 @@ app.use(express.static(DIST_DIR))
 
 // Healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
-  // ป้องกัน browser cache
-  res.set({
-    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
-    'Pragma': 'no-cache',
-    'Expires': '0'
-  })
 
   if (req) {
     res.json({
@@ -40,13 +34,6 @@ app.get('/healthcheck', (req, res) => {
 
 // Get encrypted environment configuration
 app.get('/get-env', (req, res) => {
-  // ป้องกัน browser cache
-  res.set({
-    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
-    'Pragma': 'no-cache',
-    'Expires': '0'
-  })
-
   const BUILD_STAGE = process.env.BUILD_STAGE || 'local'
   const API_GATEWAY_URL = process.env.API_GATEWAY_URL || ''
 
