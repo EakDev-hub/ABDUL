@@ -9,6 +9,11 @@ lerna-debug.log*
 package-lock.json
 .stylelintcache
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 node_modules
 dist
 dist-ssr

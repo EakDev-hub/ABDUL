@@ -9,6 +9,4 @@ services:
     hostname: default
     ports:
       - 3000:3000
-    command:
-      - bash
-      - ./run.bash
+    command: npm run server

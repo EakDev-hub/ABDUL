@@ -5,6 +5,7 @@ import stylelint from 'vite-plugin-stylelint'
 import checker from 'vite-plugin-checker'
 import { fileURLToPath, URL } from 'node:url'
 import dns from 'dns'
+import CryptoJS from 'crypto-js'
 
 dns.setDefaultResultOrder('verbatim')
 
@@ -50,7 +51,58 @@ export default ({ mode, command }) => {
       stylelint(),
       checker({
         vueTsc: true
-      })
+      }),
+      {
+        name: 'configure-server',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url === '/get-env') {
+              const BUILD_STAGE = env.BUILD_STAGE || 'local'
+              const API_GATEWAY_URL = env.API_GATEWAY_URL || ''
+
+              // สร้าง environment configuration object
+              const envConfig = {
+                NODE_ENV: BUILD_STAGE === 'prod' ? 'production' : BUILD_STAGE,
+                API_GATEWAY_URL: API_GATEWAY_URL
+              }
+
+              // Encrypt configuration
+              const encryptEnv = CryptoJS.AES.encrypt(
+                JSON.stringify(envConfig),
+                'This is env'
+              ).toString()
+
+              // ป้องกัน browser cache
+              res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+              res.setHeader('Pragma', 'no-cache')
+              res.setHeader('Expires', '0')
+              res.setHeader('Content-Type', 'application/json')
+
+              res.end(JSON.stringify({ env: encryptEnv }))
+              return
+            }
+
+            if (req.url === '/healthcheck') {
+              // ป้องกัน browser cache
+              res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+              res.setHeader('Pragma', 'no-cache')
+              res.setHeader('Expires', '0')
+              res.setHeader('Content-Type', 'application/json')
+
+              res.end(
+                JSON.stringify({
+                  status: 'UP',
+                  buildState: env.BUILD_STAGE || 'development',
+                  version: env.PROJECT_VERSION || '1.0.0'
+                })
+              )
+              return
+            }
+
+            next()
+          })
+        }
+      }
     ],
     resolve: {
       alias: [
