@@ -26,8 +26,25 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Register HttpClient for team API (5s timeout)
+builder.Services.AddHttpClient("TeamApi", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+
+// Register HttpClient for OpenRouter (30s timeout)
+builder.Services.AddHttpClient("OpenRouter", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("HTTP-Referer", "http://localhost:5000");
+    client.DefaultRequestHeaders.Add("X-Title", "ABDUL Hackathon");
+});
+
 // Register custom services
 builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
+builder.Services.AddScoped<IHackathonService, HackathonService>();
+builder.Services.AddScoped<ITeamApiClient, TeamApiClient>();
+builder.Services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
