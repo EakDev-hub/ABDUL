@@ -4,10 +4,13 @@ ARG BUILD_STAGE
 ARG environment="alpha"
 ARG namekVersion="latest"
 ARG dockerport=3000
+ARG API_GATEWAY_URL=""
+
 ENV PROJECT_VERSION $namekVersion
 ENV BUILD_STAGE $BUILD_STAGE
 ENV ENVIRONMENT $environment
 ENV DOCKER_PORT $dockerport
+ENV API_GATEWAY_URL $API_GATEWAY_URL
 
 RUN mkdir /namek
 WORKDIR /namek
@@ -31,3 +34,6 @@ RUN sed -i "s#latest#$projectVersion#" ./index.html
 
 EXPOSE $dockerport
 RUN npm run build
+
+# Start the application
+CMD ["npm", "run", "server"]

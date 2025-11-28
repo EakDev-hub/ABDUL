@@ -2,15 +2,35 @@ import IEnv from '@/models/global/env'
 import CryptoJS from 'crypto-js'
 
 export default async (): Promise<IEnv> => {
-  const BUILD_STAGE = process.env.BUILD_STAGE || 'dev'
-  const API_KEY_GOOGLE_MAP = CryptoJS.AES.decrypt(
-    'U2FsdGVkX183H/Gra7cOGLXykqdBhFH6fMQA1COyIpNBLOUjey69o7lx5LeRNIm35r3fxEuoyAEZkqnLED9EIg==',
-    'API_KEY_GOOGLE_MAP'
-  )
-    .toString(CryptoJS.enc.Utf8)
-    .replace(/^"(.*)"$/, '$1')
-  return {
-    NODE_ENV: BUILD_STAGE,
-    API_GATEWAY_URL: '',
+  try {
+    // ดึง environment configuration จาก server endpoint
+    const response = await fetch('/get-env')
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch environment config: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    // Decrypt environment configuration
+    const decryptedEnv = CryptoJS.AES.decrypt(data.env, 'This is env')
+      .toString(CryptoJS.enc.Utf8)
+
+    const envConfig: IEnv = JSON.parse(decryptedEnv)
+
+    // Validate required fields
+    if (!envConfig.API_GATEWAY_URL) {
+      console.warn('API_GATEWAY_URL is not configured. API calls may fail.')
+    }
+
+    return envConfig
+  } catch (error) {
+    console.error('Error loading environment configuration:', error)
+
+    // Fallback configuration for development
+    return {
+      NODE_ENV: process.env.BUILD_STAGE || 'development',
+      API_GATEWAY_URL: process.env.API_GATEWAY_URL || '',
+    }
   }
 }

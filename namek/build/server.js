@@ -22,6 +22,7 @@ app.use(express.static(DIST_DIR))
 
 // Healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
+
   if (req) {
     res.json({
       status: 'UP',
@@ -34,10 +35,17 @@ app.get('/healthcheck', (req, res) => {
 // Get encrypted environment configuration
 app.get('/get-env', (req, res) => {
   const BUILD_STAGE = process.env.BUILD_STAGE || 'local'
-  const env = process.env.ENV_CONFIG || '{}'
-  const envJson = JSON.parse(env)
-  envJson.NODE_ENV = BUILD_STAGE === 'prod' ? 'production' : BUILD_STAGE
-  const encryptEnv = CryptoJS.AES.encrypt(JSON.stringify(envJson), 'This is env').toString()
+  const API_GATEWAY_URL = process.env.API_GATEWAY_URL || ''
+
+  // สร้าง environment configuration object
+  const envConfig = {
+    NODE_ENV: BUILD_STAGE === 'prod' ? 'production' : BUILD_STAGE,
+    API_GATEWAY_URL: API_GATEWAY_URL
+  }
+
+  // Encrypt configuration
+  const encryptEnv = CryptoJS.AES.encrypt(JSON.stringify(envConfig), 'This is env').toString()
+
   res.json({
     env: encryptEnv
   })
