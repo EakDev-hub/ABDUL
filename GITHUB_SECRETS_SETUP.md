@@ -159,7 +159,7 @@ TEAM_API_BASE_URL=https://your-api-endpoint.com
 TEAM_API_PASS_KEY=your-passkey-here
 ```
 
-**Reference:** See `backend/.env.example` for all available options
+**Reference:** See `Backend/.env.example` for all available options
 
 **Important:**
 - Do not include quotes around values

@@ -114,8 +114,8 @@ fi
 # Build Backend Docker image
 log "Building backend Docker image..."
 docker build -t abdul-backend:latest \
-    -f "$DEPLOYMENT_DIR/backend/Dockerfile" \
-    "$DEPLOYMENT_DIR/backend" || error "Failed to build backend image"
+    -f "$DEPLOYMENT_DIR/Backend/Dockerfile" \
+    "$DEPLOYMENT_DIR/Backend" || error "Failed to build backend image"
 log "Backend image built successfully"
 
 # Build Namek Docker image
