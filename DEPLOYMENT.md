@@ -148,7 +148,7 @@ You need to configure the following secrets in your GitHub repository:
   OPENROUTER_API_KEY=your_api_key_here
   ```
 - **Type**: Secret (multi-line)
-- **Reference**: See `backend/.env.example`
+- **Reference**: See `Backend/.env.example`
 
 #### 8. `NAMEK_ENV`
 - **Description**: Environment variables for the Namek frontend service
