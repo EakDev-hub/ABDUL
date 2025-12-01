@@ -62,6 +62,43 @@ if ! docker ps > /dev/null 2>&1; then
     error "Docker daemon is not running. Please start Docker and try again."
 fi
 
+# Check and setup Docker Compose
+log "Checking Docker Compose installation..."
+DOCKER_COMPOSE_CMD=""
+
+# Check for docker compose plugin (V2)
+if docker compose version > /dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+    log "Using Docker Compose V2 (plugin)"
+# Check for standalone docker-compose (V1)
+elif command -v docker-compose > /dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+    log "Using Docker Compose V1 (standalone)"
+else
+    # Install Docker Compose plugin
+    log "Docker Compose not found. Installing Docker Compose plugin..."
+    COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    
+    # Create CLI plugins directory if it doesn't exist
+    mkdir -p /usr/local/lib/docker/cli-plugins
+    
+    # Download and install Docker Compose plugin
+    curl -SL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+        -o /usr/local/lib/docker/cli-plugins/docker-compose || error "Failed to download Docker Compose"
+    
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    
+    # Verify installation
+    if docker compose version > /dev/null 2>&1; then
+        DOCKER_COMPOSE_CMD="docker compose"
+        log "Docker Compose plugin installed successfully"
+    else
+        error "Failed to install Docker Compose plugin"
+    fi
+fi
+
+log "Docker Compose command: ${DOCKER_COMPOSE_CMD}"
+
 # Check if git is installed
 log "Checking Git installation..."
 if ! command -v git &> /dev/null; then
@@ -104,8 +141,8 @@ chmod 600 "$DEPLOYMENT_DIR/.env"
 
 # Stop existing containers
 log "Stopping existing containers..."
-if docker compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" ps 2>/dev/null | grep -q "abdul"; then
-    docker compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" down --remove-orphans || warning "Failed to stop some containers"
+if ${DOCKER_COMPOSE_CMD} -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" ps 2>/dev/null | grep -q "abdul"; then
+    ${DOCKER_COMPOSE_CMD} -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" down --remove-orphans || warning "Failed to stop some containers"
     log "Existing containers stopped"
 else
     log "No existing containers found"
@@ -131,8 +168,8 @@ docker build -t abdul-namek:latest \
 log "Namek image built successfully"
 
 # Start new containers
-log "Starting containers with docker compose..."
-docker compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" up -d || error "Failed to start containers"
+log "Starting containers with ${DOCKER_COMPOSE_CMD}..."
+${DOCKER_COMPOSE_CMD} -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" up -d || error "Failed to start containers"
 
 # Wait for containers to be healthy
 log "Waiting for containers to become healthy..."
