@@ -120,9 +120,11 @@ The deployment process requires the following GitHub Secrets to be configured in
 
 ---
 
-### 6. GITHUB_REPO
+### 6. REPO_GITHUB
 
 **Description:** Your GitHub repository URL (without https://).
+
+**Note:** GitHub reserves the `GITHUB_` prefix for system secrets, so we use `REPO_GITHUB`.
 
 **Format:** `github.com/username/repository.git`
 
@@ -229,7 +231,7 @@ DOCKER_PORT=3000
 | `EC2_SSH_PRIVATE_KEY` | Secret | ✅ Yes | SSH private key (.ppk or .pem format) |
 | `EC2_SSH_PASSPHRASE` | Secret | ⚠️ If encrypted | Passphrase for encrypted SSH key |
 | `PAT_GITHUB` | Secret | ✅ Yes | GitHub Personal Access Token |
-| `GITHUB_REPO` | String | ✅ Yes | Repository URL (github.com/user/repo.git) |
+| `REPO_GITHUB` | String | ✅ Yes | Repository URL (github.com/user/repo.git) |
 | `BACKEND_ENV` | Secret | ✅ Yes | Backend environment variables |
 | `NAMEK_ENV` | Secret | ✅ Yes | Frontend environment variables |
 | `API_GATEWAY_URL` | String | ✅ Yes | API URL for Docker build |
@@ -302,7 +304,7 @@ If you still encounter passphrase errors after the latest update:
 
 ### Error: Repository not found or authentication failed
 - **Check:** `PAT_GITHUB` has `repo` scope
-- **Check:** `GITHUB_REPO` format is correct (github.com/user/repo.git)
+- **Check:** `REPO_GITHUB` format is correct (github.com/user/repo.git)
 - **Check:** Token hasn't expired
 
 ### Error: Docker build failed
