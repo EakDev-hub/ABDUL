@@ -29,12 +29,13 @@ jobs:
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id.ppk
           
           # 2. Save the Passphrase to a file (using printf to avoid newline issues)
+          # Crucial: echo adds a newline which breaks passwords. printf does not.
           printf "%s" "${{ secrets.EC2_SSH_PASSPHRASE }}" > ~/.ssh/passphrase.txt
           
           # 3. Convert PPK to OpenSSH format
-          # This decrypts the key using the passphrase and saves it as an UNENCRYPTED key
+          # FIXED: Used --old-passphrase instead of --passphrase-file
           echo "Converting PPK to OpenSSH format..."
-          if ! puttygen ~/.ssh/id.ppk -O private-openssh -o ~/.ssh/id_rsa --passphrase-file ~/.ssh/passphrase.txt; then
+          if ! puttygen ~/.ssh/id.ppk -O private-openssh -o ~/.ssh/id_rsa --old-passphrase ~/.ssh/passphrase.txt; then
              echo "::error::Conversion failed! Likely incorrect passphrase or corrupted PPK."
              exit 1
           fi
