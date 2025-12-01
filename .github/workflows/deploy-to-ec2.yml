@@ -61,9 +61,14 @@ jobs:
 
       - name: Setup SSH key
         run: |
+          sudo apt-get update
+          sudo apt-get install -y putty-tools
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id.ppk
+          echo "${{ secrets.EC2_SSH_PASSPHRASE }}" > ~/.ssh/passphrase.txt
+          puttygen ~/.ssh/id.ppk -O private-openssh -o ~/.ssh/id_rsa --old-passphrase ~/.ssh/passphrase.txt
           chmod 600 ~/.ssh/id_rsa
+          rm -f ~/.ssh/id.ppk ~/.ssh/passphrase.txt
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Transfer docker-compose file to EC2
