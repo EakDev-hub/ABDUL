@@ -45,20 +45,6 @@ jobs:
             API_GATEWAY_URL=${{ secrets.API_GATEWAY_URL }}
           tags: ${{ env.NAMEK_IMAGE_NAME }}:latest
 
-      - name: Upload backend image artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: backend-image
-          path: /tmp/backend-image.tar
-          retention-days: 1
-
-      - name: Upload namek image artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: namek-image
-          path: /tmp/namek-image.tar
-          retention-days: 1
-
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh

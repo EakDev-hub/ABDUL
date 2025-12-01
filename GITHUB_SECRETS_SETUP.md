@@ -181,12 +181,12 @@ M4nO5pQ6rS7tU8vW9xY0zA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU1vW2xY3zA4bC5
 
 After adding all secrets, verify they're correctly configured:
 
-- [ ] `EC2_HOST` is set to your EC2 public IP or hostname
-- [ ] `EC2_USERNAME` matches your EC2 AMI (ubuntu, ec2-user, etc.)
-- [ ] `EC2_SSH_PRIVATE_KEY` contains the full private key (with BEGIN/END lines)
-- [ ] `BACKEND_ENV` contains all required backend environment variables
-- [ ] `NAMEK_ENV` contains all required frontend environment variables
-- [ ] `VITE_API_GATEWAY_URL` in `NAMEK_ENV` is accessible from browser
+- [x] `EC2_HOST` is set to your EC2 public IP or hostname
+- [x] `EC2_USERNAME` matches your EC2 AMI (ubuntu, ec2-user, etc.)
+- [x] `EC2_SSH_PRIVATE_KEY` contains the full private key (with BEGIN/END lines)
+- [x] `BACKEND_ENV` contains all required backend environment variables
+- [x] `NAMEK_ENV` contains all required frontend environment variables
+- [x] `VITE_API_GATEWAY_URL` in `NAMEK_ENV` is accessible from browser
 - [ ] No secrets are committed to the repository
 - [ ] All secrets are marked as "Secret" type (not visible in logs)
 
