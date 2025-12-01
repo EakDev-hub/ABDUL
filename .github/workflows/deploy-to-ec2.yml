@@ -38,8 +38,8 @@ jobs:
       - name: Build Backend Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./Backend
+          file: ./Backend/Dockerfile
           push: false
           outputs: type=docker,dest=/tmp/backend-image.tar
           tags: ${{ env.BACKEND_IMAGE_NAME }}:latest
