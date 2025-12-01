@@ -68,13 +68,22 @@ jobs:
           fi
           echo "✓ Passphrase file created ($(wc -c < $HOME/.ssh/passphrase.txt) bytes)"
           
-          # 4. Convert PPK to OpenSSH format with multiple fallback methods
-          echo "Step 4: Converting PPK to OpenSSH format..."
+          # 4. Create empty passphrase file for unencrypted output
+          echo "Step 4: Creating empty passphrase for output key..."
+          # This tells puttygen to save the output key WITHOUT encryption
+          touch $HOME/.ssh/empty_passphrase.txt
+          chmod 600 $HOME/.ssh/empty_passphrase.txt
+          echo "✓ Empty passphrase file created"
+          
+          # 5. Convert PPK to OpenSSH format with multiple fallback methods
+          echo "Step 5: Converting PPK to OpenSSH format (decrypted)..."
           CONVERSION_SUCCESS=false
           
           # METHOD 1: File-based passphrase with newline (most reliable)
           echo "Attempting Method 1: File-based passphrase with newline..."
-          if puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa --old-passphrase $HOME/.ssh/passphrase.txt 2>/dev/null; then
+          if puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa \
+             --old-passphrase $HOME/.ssh/passphrase.txt \
+             --new-passphrase $HOME/.ssh/empty_passphrase.txt 2>/dev/null; then
             echo "✓ Method 1 succeeded!"
             CONVERSION_SUCCESS=true
           else
@@ -82,7 +91,9 @@ jobs:
             
             # METHOD 2: Passphrase via stdin pipe
             echo "Attempting Method 2: Passphrase via stdin..."
-            if cat $HOME/.ssh/passphrase.txt | puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa --old-passphrase /dev/stdin 2>/dev/null; then
+            if cat $HOME/.ssh/passphrase.txt | puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa \
+               --old-passphrase /dev/stdin \
+               --new-passphrase $HOME/.ssh/empty_passphrase.txt 2>/dev/null; then
               echo "✓ Method 2 succeeded!"
               CONVERSION_SUCCESS=true
             else
@@ -90,7 +101,9 @@ jobs:
               
               # METHOD 3: Direct echo with passphrase (fallback for edge cases)
               echo "Attempting Method 3: Echo-based passphrase..."
-              if echo "$SSH_PASS" | puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa --old-passphrase /dev/stdin 2>/dev/null; then
+              if echo "$SSH_PASS" | puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa \
+                 --old-passphrase /dev/stdin \
+                 --new-passphrase $HOME/.ssh/empty_passphrase.txt 2>/dev/null; then
                 echo "✓ Method 3 succeeded!"
                 CONVERSION_SUCCESS=true
               else
@@ -149,7 +162,7 @@ jobs:
           
           # 9. Cleanup sensitive files
           echo "Step 8: Cleaning up temporary files..."
-          rm -f $HOME/.ssh/id.ppk $HOME/.ssh/passphrase.txt
+          rm -f $HOME/.ssh/id.ppk $HOME/.ssh/passphrase.txt $HOME/.ssh/empty_passphrase.txt
           echo "✓ Cleanup complete"
           
           echo "=========================================="
