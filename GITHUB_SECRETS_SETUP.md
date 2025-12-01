@@ -254,6 +254,50 @@ After adding all secrets, verify they are set correctly:
 - **Check:** The key matches the one configured in EC2 instance
 - **Check:** `EC2_USERNAME` is correct for your AMI
 
+### Error: "Key is still encrypted" or "incorrect passphrase supplied"
+
+**Updated as of 2025-12-01:** The deployment workflow now includes robust PPK conversion with multiple fallback methods.
+
+If you still encounter passphrase errors after the latest update:
+
+1. **Verify Passphrase Accuracy**
+   - Double-check there are no extra spaces, tabs, or hidden characters
+   - Copy the passphrase directly from where you saved it
+   - Ensure no newlines were accidentally included when setting the secret
+
+2. **Check PPK File Format**
+   - Open the PPK file in a text editor
+   - Verify it starts with `PuTTY-User-Key-File-2:` or `PuTTY-User-Key-File-3:`
+   - Ensure all content including headers and footers is included
+   - Check that the `Encryption:` line shows the encryption method
+
+3. **Review GitHub Actions Logs**
+   The workflow now provides detailed debugging output showing:
+   - Which conversion method was attempted
+   - File sizes (to confirm secrets were loaded)
+   - PPK format validation results
+   - Specific error messages for each failure point
+   
+   Look for these indicators in the logs:
+   - ✓ marks indicate successful steps
+   - ⚠ marks indicate fallback to alternative methods
+   - Specific error messages will guide you to the exact issue
+
+4. **Common Solutions**
+   - **Wrong passphrase**: Re-verify `EC2_SSH_PASSPHRASE` in GitHub Secrets
+   - **Corrupted PPK**: Regenerate the PPK file using PuTTYgen
+   - **Unsupported encryption**: Create a new PPK with AES-256-CBC encryption
+   - **Special characters**: The workflow now handles special characters correctly via environment variables
+
+5. **Alternative: Use OpenSSH Format**
+   If PPK conversion continues to fail:
+   - Open your PPK in PuTTYgen (locally on your machine)
+   - Go to **Conversions** → **Export OpenSSH key**
+   - Save as a `.pem` file
+   - Remove the passphrase when saving, or save with passphrase
+   - Update `EC2_SSH_PRIVATE_KEY` with the contents of the `.pem` file
+   - If you removed the passphrase, you can leave `EC2_SSH_PASSPHRASE` empty or delete it
+
 ### Error: Repository not found or authentication failed
 - **Check:** `GITHUB_PAT` has `repo` scope
 - **Check:** `GITHUB_REPO` format is correct (github.com/user/repo.git)
