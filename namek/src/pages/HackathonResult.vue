@@ -4,12 +4,39 @@
     <div class="animated-bg"></div>
     <div class="grid-overlay"></div>
 
+    <!-- Floating Reset Button -->
+    <button v-if="result" class="floating-reset-button" @click="goBack">
+      <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+        <path d="M3 21v-5h5"/>
+      </svg>
+      <span class="button-text">ส่งใหม่</span>
+    </button>
+
     <!-- Main Content -->
     <div class="main-content">
       <!-- Results Section -->
       <div v-if="result" class="results-container">
         <!-- Summary -->
         <div class="summary-card">
+          <!-- Card Header with Badge -->
+          <div class="card-header">
+            <div class="header-title">
+              <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+              <span>RESULTS SUMMARY</span>
+            </div>
+            <div class="header-badge">
+              <span class="pass-badge" :class="`badge-${result.passKeyType}`">
+                {{ result.passKeyType.toUpperCase() }}
+              </span>
+            </div>
+          </div>
+
           <div class="summary-grid">
             <div class="stat-box">
               <p class="stat-label">จำนวนข้อที่ทำได้</p>
@@ -24,30 +51,18 @@
               </p>
             </div>
             <div class="stat-box">
-              <p class="stat-label">UUID</p>
-              <p class="stat-uuid">
-                {{ result.uuid }}
+              <p class="stat-label">Max Duration</p>
+              <p class="stat-value stat-duration">
+                {{ result.maxDurationInSecs }} <span class="stat-unit">วินาที</span>
               </p>
             </div>
           </div>
-          <div class="summary-footer">
-            <span class="pass-badge" :class="`badge-${result.passKeyType}`">
-              {{ result.passKeyType.toUpperCase() }}
-            </span>
-            <span class="duration-text">
-              Max Duration: {{ result.maxDurationInSecs }} วินาที
-            </span>
-          </div>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button class="action-button primary-button" @click="goBack">
-            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 12h18M3 12l6-6m-6 6l6 6"/>
-            </svg>
-            <span>ส่งใหม่อีกครั้ง</span>
-          </button>
+          <!-- UUID Section -->
+          <div class="uuid-section">
+            <span class="uuid-label">SUBMISSION ID:</span>
+            <span class="stat-uuid">{{ result.uuid }}</span>
+          </div>
         </div>
 
         <!-- Results Table -->
@@ -84,9 +99,12 @@
       <!-- No Results Message -->
       <div v-else class="no-results">
         <p class="no-results-text">ไม่พบผลลัพธ์</p>
-        <button class="reset-button" @click="goBack">
-          <span class="button-icon">🏠</span>
-          กลับหน้าแรก
+        <button class="no-results-button" @click="goBack">
+          <svg class="no-results-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>กลับหน้าแรก</span>
         </button>
       </div>
     </div>
@@ -110,8 +128,7 @@ function getScoreClass(score: number): string {
 }
 
 function goBack() {
-  hackathonStore.setResult(undefined as any)
-  hackathonStore.setError(null)
+  hackathonStore.clearResult()
   router.push('/hackathon')
 }
 </script>
@@ -177,10 +194,89 @@ function goBack() {
   100% { transform: perspective(600px) rotateX(60deg) translateY(-110px) translateZ(-300px); }
 }
 
+/* Floating Reset Button */
+.floating-reset-button {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  padding: 0.9rem 1.5rem;
+  background: rgba(0, 10, 20, 0.9);
+  border: 2px solid #00f3ff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #00f3ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+  animation: floatingPulse 3s ease-in-out infinite;
+}
+
+.floating-reset-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(176, 0, 255, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.floating-reset-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 35px rgba(0, 243, 255, 0.6), 0 0 50px rgba(0, 243, 255, 0.4);
+  border-color: #00ffff;
+}
+
+.floating-reset-button:hover::before {
+  opacity: 1;
+}
+
+.floating-reset-button .button-icon {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 5px #00f3ff);
+  animation: rotateIcon 2s linear infinite paused;
+}
+
+.floating-reset-button:hover .button-icon {
+  animation-play-state: running;
+}
+
+@keyframes rotateIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes floatingPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.5), 0 0 40px rgba(0, 243, 255, 0.3);
+  }
+}
+
+.button-text {
+  position: relative;
+  z-index: 1;
+}
+
 .main-content {
   position: relative;
   z-index: 2;
   padding: 2rem;
+  padding-top: 5rem;
   min-height: 100vh;
 }
 
@@ -188,14 +284,13 @@ function goBack() {
 .results-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding-top: 2rem;
 }
 
 .summary-card {
   background: rgba(0, 10, 20, 0.85);
   border: 1px solid rgba(0, 243, 255, 0.3);
-  padding: 2.5rem;
-  margin-bottom: 2rem;
+  padding: 0;
+  margin-bottom: 2.5rem;
   position: relative;
   backdrop-filter: blur(15px);
   clip-path: polygon(
@@ -207,6 +302,7 @@ function goBack() {
     0 0 40px rgba(0, 243, 255, 0.15),
     inset 0 0 80px rgba(0, 243, 255, 0.03);
   animation: cardGlow 3s ease-in-out infinite;
+  overflow: hidden;
 }
 
 .summary-card::before {
@@ -220,6 +316,7 @@ function goBack() {
   background: linear-gradient(135deg, #00f3ff, #b000ff) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   opacity: 0.4;
   pointer-events: none;
@@ -242,11 +339,44 @@ function goBack() {
   50% { box-shadow: 0 0 60px rgba(0, 243, 255, 0.25), inset 0 0 100px rgba(0, 243, 255, 0.05); }
 }
 
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2.5rem;
+  background: rgba(0, 243, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #00f3ff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.title-icon {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 8px #00f3ff);
+}
+
+.header-badge {
+  display: flex;
+  align-items: center;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
-  margin-bottom: 1.5rem;
+  padding: 2.5rem;
 }
 
 .stat-box {
@@ -266,7 +396,7 @@ function goBack() {
 .stat-value {
   color: #fff;
   font-family: 'Orbitron', sans-serif;
-  font-size: 3rem;
+  font-size: 2.8rem;
   font-weight: 900;
   background: linear-gradient(180deg, #fff, #00f3ff);
   -webkit-background-clip: text;
@@ -289,140 +419,85 @@ function goBack() {
   filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.8));
 }
 
+.stat-duration {
+  background: linear-gradient(180deg, #ffcc00, #ff6600);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(255, 153, 0, 0.6));
+}
+
 .stat-unit {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #90e0ef;
+}
+
+/* UUID Section */
+.uuid-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 2.5rem;
+  padding-top: 0;
+  flex-wrap: wrap;
+}
+
+.uuid-label {
+  color: #aaddff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  font-weight: 600;
 }
 
 .stat-uuid {
   color: #00f3ff;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 1rem;
-  word-break: break-all;
+  font-size: 0.95rem;
   text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-  padding: 0.5rem;
-  background: rgba(0, 243, 255, 0.05);
-  border-left: 2px solid #00f3ff;
-}
-
-.summary-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 243, 255, 0.1);
-  margin-top: 1.5rem;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.action-button {
-  padding: 1rem 2rem;
-  background: transparent;
-  border: 2px solid;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.action-button::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.4s ease, height 0.4s ease;
-}
-
-.action-button:hover::before {
-  width: 300%;
-  height: 300%;
-}
-
-.primary-button {
-  border-color: #00f3ff;
-  color: #00f3ff;
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-}
-
-.primary-button::before {
-  background: rgba(0, 243, 255, 0.15);
-}
-
-.primary-button:hover {
-  box-shadow: 0 0 35px rgba(0, 243, 255, 0.5);
-  transform: translateY(-2px);
-}
-
-.button-icon {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.3s ease;
-}
-
-.action-button:hover .button-icon {
-  transform: translateX(-3px);
+  padding: 0.5rem 1rem;
+  background: rgba(0, 243, 255, 0.08);
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 4px;
 }
 
 .pass-badge {
-  padding: 0.6rem 1.8rem;
+  padding: 0.5rem 1.5rem;
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.85rem;
   letter-spacing: 2px;
-  position: relative;
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   border: 1px solid;
-  box-shadow: 0 0 20px;
+  box-shadow: 0 0 15px;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .badge-develop {
   background: rgba(0, 255, 136, 0.15);
   color: #00ff88;
   border-color: #00ff88;
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
 }
 
 .badge-present {
   background: rgba(255, 102, 0, 0.15);
   color: #ff6600;
   border-color: #ff6600;
-  box-shadow: 0 0 20px rgba(255, 102, 0, 0.4);
+  box-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
 }
 
 .badge-finalist {
   background: rgba(255, 0, 102, 0.15);
   color: #ff0066;
   border-color: #ff0066;
-  box-shadow: 0 0 20px rgba(255, 0, 102, 0.4);
-}
-
-.duration-text {
-  color: #aaddff;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.95rem;
-  opacity: 0.8;
+  box-shadow: 0 0 15px rgba(255, 0, 102, 0.4);
 }
 
 /* Results Table */
@@ -581,7 +656,7 @@ function goBack() {
   align-items: center;
   justify-content: center;
   min-height: 80vh;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 .no-results-text {
@@ -595,22 +670,120 @@ function goBack() {
   letter-spacing: 2px;
 }
 
+.no-results-button {
+  padding: 1.2rem 2.5rem;
+  background: rgba(0, 10, 20, 0.9);
+  border: 2px solid #00f3ff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #00f3ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.no-results-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(176, 0, 255, 0.15));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.no-results-button:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 40px rgba(0, 243, 255, 0.6),
+    0 0 60px rgba(0, 243, 255, 0.4),
+    0 5px 20px rgba(0, 243, 255, 0.3);
+  border-color: #00ffff;
+}
+
+.no-results-button:hover::before {
+  opacity: 1;
+}
+
+.no-results-icon {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 0 8px #00f3ff);
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.no-results-button:hover .no-results-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 12px #00f3ff);
+}
+
+.no-results-button span {
+  position: relative;
+  z-index: 1;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
+  .floating-reset-button {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.8rem;
+  }
+
+  .floating-reset-button .button-text {
+    display: none;
+  }
+
+  .main-content {
+    padding: 1rem;
+    padding-top: 4rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+  }
+
+  .header-title {
+    font-size: 0.9rem;
+  }
+
+  .summary-grid {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
   .stat-value {
     font-size: 2rem;
+  }
+
+  .uuid-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.2rem 1.5rem;
+    padding-top: 0;
   }
 
   .results-table th,
   .results-table td {
     padding: 0.6rem 0.8rem;
     font-size: 0.8rem;
-  }
-
-  .action-button {
-    padding: 0.9rem 1.5rem;
-    font-size: 0.9rem;
   }
 }
 </style>
