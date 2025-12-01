@@ -70,11 +70,13 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           rm -f ~/.ssh/id.ppk ~/.ssh/passphrase.txt
           ls -la ~/.ssh
+          echo "Public key derived from converted private key:"
+          ssh-keygen -y -f ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Transfer docker-compose file to EC2
         run: |
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+          scp -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             docker-compose.prod.yml \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/docker-compose.yml
 
