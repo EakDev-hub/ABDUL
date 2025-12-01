@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    image: abdul-backend:latest
+    container_name: abdul-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - abdul-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  namek:
+    image: abdul-namek:latest
+    container_name: abdul-namek
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DOCKER_PORT=3000
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - abdul-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  abdul-network:
+    driver: bridge
