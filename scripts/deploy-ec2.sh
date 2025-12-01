@@ -104,8 +104,8 @@ chmod 600 "$DEPLOYMENT_DIR/.env"
 
 # Stop existing containers
 log "Stopping existing containers..."
-if docker-compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" ps 2>/dev/null | grep -q "abdul"; then
-    docker-compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" down --remove-orphans || warning "Failed to stop some containers"
+if docker compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" ps 2>/dev/null | grep -q "abdul"; then
+    docker compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" down --remove-orphans || warning "Failed to stop some containers"
     log "Existing containers stopped"
 else
     log "No existing containers found"
@@ -131,8 +131,8 @@ docker build -t abdul-namek:latest \
 log "Namek image built successfully"
 
 # Start new containers
-log "Starting containers with docker-compose..."
-docker-compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" up -d || error "Failed to start containers"
+log "Starting containers with docker compose..."
+docker compose -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" up -d || error "Failed to start containers"
 
 # Wait for containers to be healthy
 log "Waiting for containers to become healthy..."
