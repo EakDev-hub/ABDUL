@@ -41,14 +41,14 @@ This document summarizes the migration from **"Build on GitHub Actions, Transfer
 - ✅ Removed image export steps (saving to tar)
 - ✅ Removed image transfer steps (SCP of tar files)
 - ✅ Simplified SSH key setup (removed PuTTY conversion)
-- ✅ Added PAT_GITHUB and GITHUB_REPO parameters to deployment
+- ✅ Added PAT_GITHUB and REPO_GITHUB parameters to deployment
 - ✅ Workflow now only transfers configs and executes remote script
 
 **Lines Reduced:** 124 → 56 (46% reduction)
 
 ### 2. `scripts/deploy-ec2.sh`
 **Changes:**
-- ✅ Added parameters: PAT_GITHUB, GITHUB_REPO, API_GATEWAY_URL
+- ✅ Added parameters: PAT_GITHUB, REPO_GITHUB, API_GATEWAY_URL
 - ✅ Added git clone/pull logic with authentication
 - ✅ Added Docker build commands for both services
 - ✅ Removed Docker load commands (no longer needed)
@@ -61,7 +61,7 @@ This document summarizes the migration from **"Build on GitHub Actions, Transfer
 ### 3. `GITHUB_SECRETS_SETUP.md`
 **Changes:**
 - ✅ Added `PAT_GITHUB` setup instructions
-- ✅ Added `GITHUB_REPO` format documentation
+- ✅ Added `REPO_GITHUB` format documentation
 - ✅ Updated `EC2_SSH_PRIVATE_KEY` to support both .ppk and .pem formats
 - ✅ Kept `EC2_SSH_PASSPHRASE` support for encrypted keys
 - ✅ Comprehensive troubleshooting section
@@ -98,8 +98,9 @@ You must add these NEW secrets to your GitHub repository:
 7. **Copy immediately** (shown only once!)
 8. Add as GitHub Secret
 
-### 2. GITHUB_REPO
+### 2. REPO_GITHUB
 **Purpose:** Repository URL for cloning on EC2
+**Note:** GitHub reserves the `GITHUB_` prefix, so we use `REPO_GITHUB`
 
 **Format:** `github.com/username/repository.git`
 
@@ -130,7 +131,7 @@ You must add these NEW secrets to your GitHub repository:
 ### Step 1: Update GitHub Secrets
 - [ ] Create GitHub Personal Access Token with `repo` scope
 - [ ] Add `PAT_GITHUB` secret to GitHub repository
-- [ ] Add `GITHUB_REPO` secret (format: `github.com/user/repo.git`)
+- [ ] Add `REPO_GITHUB` secret (format: `github.com/user/repo.git`)
 - [ ] Keep existing `EC2_SSH_PRIVATE_KEY` (no conversion needed - .ppk format is supported)
 - [ ] Keep existing `EC2_SSH_PASSPHRASE` (if your key is encrypted)
 - [ ] Verify all required secrets are configured (8-9 secrets total)
@@ -226,7 +227,7 @@ Improvement: 40-50% faster! ⚡
 **Solution:**
 - Verify `PAT_GITHUB` has `repo` scope
 - Check token hasn't expired
-- Verify `GITHUB_REPO` format: `github.com/user/repo.git`
+- Verify `REPO_GITHUB` format: `github.com/user/repo.git`
 - Test manually: `git clone https://YOUR_PAT@github.com/user/repo.git /tmp/test`
 
 ### Issue 2: Permission Denied (SSH)

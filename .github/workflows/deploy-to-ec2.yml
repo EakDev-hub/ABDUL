@@ -196,7 +196,7 @@ jobs:
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "sudo bash /tmp/deploy-ec2.sh \
               '${{ secrets.PAT_GITHUB }}' \
-              '${{ secrets.GITHUB_REPO }}' \
+              '${{ secrets.REPO_GITHUB }}' \
               '${{ secrets.API_GATEWAY_URL }}'"
 
       - name: Verify deployment

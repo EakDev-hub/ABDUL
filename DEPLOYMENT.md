@@ -130,8 +130,9 @@ You need to configure the following secrets in your GitHub repository:
 - **Type**: Secret
 - **Important**: This token allows read access to your repository
 
-#### 6. `GITHUB_REPO`
+#### 6. `REPO_GITHUB`
 - **Description**: GitHub repository URL without https://
+- **Note**: GitHub reserves the `GITHUB_` prefix for system secrets, so we use `REPO_GITHUB`
 - **Example**: `github.com/username/ABDUL.git`
 - **Type**: String
 - **Format**: `github.com/username/repository.git`
@@ -178,7 +179,7 @@ EC2_SSH_PRIVATE_KEY: |
   ... (rest of key content)
   -----END RSA PRIVATE KEY-----
 PAT_GITHUB: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-GITHUB_REPO: github.com/username/ABDUL.git
+REPO_GITHUB: github.com/username/ABDUL.git
 BACKEND_ENV: |
   ASPNETCORE_ENVIRONMENT=Production
   ASPNETCORE_URLS=http://+:5000
@@ -358,7 +359,7 @@ chmod 600 ~/.ssh/your-key.pem
 git --version
 
 # Verify GitHub PAT has correct permissions
-# Ensure GITHUB_REPO format is correct (github.com/user/repo.git)
+# Ensure REPO_GITHUB format is correct (github.com/user/repo.git)
 
 # Test git clone manually on EC2
 git clone https://YOUR_PAT@github.com/user/repo.git /tmp/test-clone
