@@ -91,9 +91,11 @@ The deployment process requires the following GitHub Secrets to be configured in
 
 ---
 
-### 5. GITHUB_PAT
+### 5. PAT_GITHUB
 
 **Description:** GitHub Personal Access Token for cloning the repository on EC2.
+
+**Important:** GitHub reserves the `GITHUB_` prefix for system secrets, so we use `PAT_GITHUB` instead.
 
 **Required Scopes:**
 - `repo` (Full control of private repositories)
@@ -108,7 +110,7 @@ The deployment process requires the following GitHub Secrets to be configured in
    - ✅ `repo` (Full control of private repositories)
 6. Click **"Generate token"**
 7. **Copy the token immediately** (you won't see it again!)
-8. Add it as a GitHub Secret named `GITHUB_PAT`
+8. Add it as a GitHub Secret named `PAT_GITHUB`
 
 **Important:**
 - Store this token securely
@@ -226,7 +228,7 @@ DOCKER_PORT=3000
 | `EC2_USERNAME` | String | ✅ Yes | SSH username (ubuntu/ec2-user) |
 | `EC2_SSH_PRIVATE_KEY` | Secret | ✅ Yes | SSH private key (.ppk or .pem format) |
 | `EC2_SSH_PASSPHRASE` | Secret | ⚠️ If encrypted | Passphrase for encrypted SSH key |
-| `GITHUB_PAT` | Secret | ✅ Yes | GitHub Personal Access Token |
+| `PAT_GITHUB` | Secret | ✅ Yes | GitHub Personal Access Token |
 | `GITHUB_REPO` | String | ✅ Yes | Repository URL (github.com/user/repo.git) |
 | `BACKEND_ENV` | Secret | ✅ Yes | Backend environment variables |
 | `NAMEK_ENV` | Secret | ✅ Yes | Frontend environment variables |
@@ -299,7 +301,7 @@ If you still encounter passphrase errors after the latest update:
    - If you removed the passphrase, you can leave `EC2_SSH_PASSPHRASE` empty or delete it
 
 ### Error: Repository not found or authentication failed
-- **Check:** `GITHUB_PAT` has `repo` scope
+- **Check:** `PAT_GITHUB` has `repo` scope
 - **Check:** `GITHUB_REPO` format is correct (github.com/user/repo.git)
 - **Check:** Token hasn't expired
 
@@ -318,7 +320,7 @@ If you still encounter passphrase errors after the latest update:
 ## Security Best Practices
 
 1. **Rotate Secrets Regularly**
-   - Update `GITHUB_PAT` every 90 days
+   - Update `PAT_GITHUB` every 90 days
    - Rotate SSH keys annually
    - Update API keys when team members change
 

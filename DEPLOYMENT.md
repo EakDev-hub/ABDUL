@@ -119,8 +119,9 @@ You need to configure the following secrets in your GitHub repository:
 - **Type**: Secret
 - **Required**: Only if your SSH key is encrypted with a passphrase
 
-#### 5. `GITHUB_PAT`
+#### 5. `PAT_GITHUB`
 - **Description**: GitHub Personal Access Token for cloning repository on EC2
+- **Note**: GitHub reserves the `GITHUB_` prefix for system secrets, so we use `PAT_GITHUB`
 - **How to get it**:
   1. Go to GitHub Settings → Developer settings → Personal access tokens
   2. Generate new token (classic)
@@ -176,7 +177,7 @@ EC2_SSH_PRIVATE_KEY: |
   MIIEpAIBAAKCAQEA2x5q...
   ... (rest of key content)
   -----END RSA PRIVATE KEY-----
-GITHUB_PAT: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PAT_GITHUB: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 GITHUB_REPO: github.com/username/ABDUL.git
 BACKEND_ENV: |
   ASPNETCORE_ENVIRONMENT=Production

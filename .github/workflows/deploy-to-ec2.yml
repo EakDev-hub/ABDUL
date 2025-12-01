@@ -195,7 +195,7 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "sudo bash /tmp/deploy-ec2.sh \
-              '${{ secrets.GITHUB_PAT }}' \
+              '${{ secrets.PAT_GITHUB }}' \
               '${{ secrets.GITHUB_REPO }}' \
               '${{ secrets.API_GATEWAY_URL }}'"
 
