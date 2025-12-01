@@ -1,330 +1,305 @@
 # GitHub Secrets Setup Guide
 
-This guide provides step-by-step instructions for configuring GitHub Secrets required for automated deployment to AWS EC2.
+This document contains instructions for setting up GitHub Secrets required for the ABDUL deployment workflow.
 
-## Quick Reference
+## Required Secrets
 
-| Secret Name | Required | Type | Example |
-|-------------|----------|------|---------|
-| `EC2_HOST` | ✅ Yes | String | `ec2-54-123-45-67.compute-1.amazonaws.com` |
-| `EC2_USERNAME` | ✅ Yes | String | `ubuntu` |
-| `EC2_SSH_PRIVATE_KEY` | ✅ Yes | Secret | (SSH private key content) |
-| `BACKEND_ENV` | ✅ Yes | Secret | (Environment variables) |
-| `NAMEK_ENV` | ✅ Yes | Secret | (Environment variables) |
-| `API_GATEWAY_URL` | ⚠️ Optional | String | `http://localhost:5000` |
+The deployment process requires the following GitHub Secrets to be configured in your repository:
+
+### 1. EC2_HOST
+
+**Description:** The public IP address or hostname of your EC2 instance.
+
+**Example:**
+- `ec2-54-123-45-67.compute-1.amazonaws.com`
+- `54.123.45.67`
+
+**How to get it:**
+1. Go to AWS EC2 Console
+2. Select your EC2 instance
+3. Copy the "Public IPv4 address" or "Public IPv4 DNS"
 
 ---
 
-## Step-by-Step Setup
+### 2. EC2_USERNAME
 
-### 1. Access GitHub Secrets Settings
+**Description:** The SSH username for your EC2 instance.
+
+**Common values:**
+- `ubuntu` (for Ubuntu AMI)
+- `ec2-user` (for Amazon Linux)
+- `admin` (for Debian)
+
+**Example:** `ubuntu`
+
+---
+
+### 3. EC2_SSH_PRIVATE_KEY
+
+**Description:** Your SSH private key for accessing the EC2 instance. Supports both PuTTY (.ppk) and OpenSSH (.pem) formats.
+
+**Supported Formats:**
+- PuTTY .ppk format (recommended if you're already using it)
+- OpenSSH .pem format
+
+**How to get it:**
+
+#### If you have a .ppk file (PuTTY format):
+1. Open your `.ppk` file in a text editor
+2. Copy the entire content including all headers and footers:
+   ```
+   PuTTY-User-Key-File-2: ssh-rsa
+   Encryption: aes256-cbc
+   ... (all key content) ...
+   ```
+3. Paste into the GitHub Secret
+
+#### If you have a .pem file (OpenSSH format):
+1. Open your `.pem` file in a text editor
+2. Copy the entire content including the header and footer:
+   ```
+   -----BEGIN RSA PRIVATE KEY-----
+   ... (key content) ...
+   -----END RSA PRIVATE KEY-----
+   ```
+3. Paste into the GitHub Secret
+
+**Important:**
+- Both .ppk and .pem formats are supported (no conversion needed)
+- Include the entire key content with all headers/footers
+- Keep this secret secure and never commit it to your repository
+- Ensure proper line breaks are preserved
+
+---
+
+### 4. EC2_SSH_PASSPHRASE
+
+**Description:** The passphrase for your SSH private key (if your key is encrypted).
+
+**Format:** Plain text string
+
+**How to get it:**
+- This is the passphrase you created when generating your SSH key pair
+- If your key is not encrypted, you can skip this secret or leave it empty
+
+**Example:** `MySecurePassphrase123!`
+
+**Important:**
+- Only needed if your SSH private key is encrypted with a passphrase
+- Keep this secret secure
+- If you don't have a passphrase on your key, this secret is optional
+
+---
+
+### 5. GITHUB_PAT
+
+**Description:** GitHub Personal Access Token for cloning the repository on EC2.
+
+**Required Scopes:**
+- `repo` (Full control of private repositories)
+
+**How to create:**
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click **"Generate new token (classic)"**
+3. Give it a descriptive name (e.g., "ABDUL EC2 Deployment")
+4. Set expiration (recommended: 90 days)
+5. Select scopes:
+   - ✅ `repo` (Full control of private repositories)
+6. Click **"Generate token"**
+7. **Copy the token immediately** (you won't see it again!)
+8. Add it as a GitHub Secret named `GITHUB_PAT`
+
+**Important:**
+- Store this token securely
+- If using a public repository, this token is still needed for the deployment script
+- Rotate this token regularly for security
+- If the token expires, you'll need to generate a new one
+
+---
+
+### 6. GITHUB_REPO
+
+**Description:** Your GitHub repository URL (without https://).
+
+**Format:** `github.com/username/repository.git`
+
+**Examples:**
+- `github.com/apisitthaosri/ABDUL.git`
+- `github.com/yourorg/your-repo.git`
+
+**How to get it:**
+1. Go to your GitHub repository
+2. Click the green **"Code"** button
+3. Copy the HTTPS URL (e.g., `https://github.com/user/repo.git`)
+4. Remove the `https://` prefix
+5. The result should be: `github.com/user/repo.git`
+
+---
+
+### 7. BACKEND_ENV
+
+**Description:** Environment variables for the backend .NET service.
+
+**Format:** Multi-line string with KEY=VALUE pairs
+
+**Example:**
+```
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=http://+:5000
+Logging__LogLevel__Default=Information
+Logging__LogLevel__Microsoft.AspNetCore=Warning
+AllowedHosts=*
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxx
+TEAM_API_BASE_URL=https://your-api-endpoint.com
+TEAM_API_PASS_KEY=your-passkey-here
+```
+
+**Reference:** See `backend/.env.example` for all available options
+
+**Important:**
+- Do not include quotes around values
+- Each variable should be on its own line
+- Sensitive values (API keys) should only be stored here, never in code
+
+---
+
+### 8. NAMEK_ENV
+
+**Description:** Environment variables for the Namek frontend service.
+
+**Format:** Multi-line string with KEY=VALUE pairs
+
+**Example:**
+```
+NODE_ENV=production
+VITE_API_GATEWAY_URL=http://54.123.45.67:5000
+VITE_APP_VERSION=1.0.0
+DOCKER_PORT=3000
+```
+
+**Reference:** See `namek/.env.example` for all available options
+
+**Important:**
+- `VITE_API_GATEWAY_URL` must be accessible from users' browsers
+- If EC2 is behind a load balancer, use the load balancer URL
+- Use your EC2's public IP or domain name for `VITE_API_GATEWAY_URL`
+
+---
+
+### 9. API_GATEWAY_URL
+
+**Description:** The backend API URL used during the Docker build process.
+
+**Format:** Full URL including protocol
+
+**Examples:**
+- `http://localhost:5000` (for internal communication)
+- `http://54.123.45.67:5000` (for external access)
+- `https://api.yourdomain.com` (for production with domain)
+
+**Important:**
+- This is used as a build argument for the Namek Docker image
+- Can be different from `VITE_API_GATEWAY_URL` in `NAMEK_ENV`
+- If unsure, use `http://localhost:5000`
+
+---
+
+## How to Add Secrets to GitHub
 
 1. Go to your GitHub repository
-2. Click **Settings** (top navigation)
+2. Navigate to **Settings**
 3. In the left sidebar, click **Secrets and variables** → **Actions**
-4. You should see "Repository secrets" section
-
-### 2. Add `EC2_HOST` Secret
-
-**Purpose**: Public IP or hostname of your EC2 instance
-
-**Steps**:
-1. Click **New repository secret**
-2. **Name**: `EC2_HOST`
-3. **Value**: Your EC2 instance's public IP or hostname
-   - Example: `54.123.45.67`
-   - Or: `ec2-54-123-45-67.compute-1.amazonaws.com`
-4. Click **Add secret**
-
-**How to find your EC2 Host**:
-- AWS Console → EC2 → Instances
-- Look for "Public IPv4 address" or "Public IPv4 DNS"
-
-### 3. Add `EC2_USERNAME` Secret
-
-**Purpose**: SSH username for your EC2 instance
-
-**Steps**:
-1. Click **New repository secret**
-2. **Name**: `EC2_USERNAME`
-3. **Value**: SSH username
-   - For Ubuntu AMI: `ubuntu`
-   - For Amazon Linux 2: `ec2-user`
-   - For other OS: check your AMI documentation
-4. Click **Add secret**
-
-### 4. Add `EC2_SSH_PRIVATE_KEY` Secret
-
-**Purpose**: Private SSH key for EC2 authentication
-
-**⚠️ IMPORTANT**: This is sensitive data. Handle with care!
-
-**Steps**:
-
-1. **Locate your SSH key file**:
-   - Usually in `~/.ssh/` directory
-   - File name like `my-key.pem` or `my-key.ppk`
-   - This is the file you downloaded when creating the EC2 key pair
-
-2. **Open the key file in a text editor**:
-   ```bash
-   cat ~/.ssh/my-key.pem
-   ```
-   
-   Or on Windows:
-   ```powershell
-   Get-Content C:\Users\YourUsername\.ssh\my-key.pem
-   ```
-
-3. **Copy the entire content**:
-   - Include the `-----BEGIN RSA PRIVATE KEY-----` line
-   - Include the `-----END RSA PRIVATE KEY-----` line
-   - Include all lines in between
-
-4. **Add to GitHub**:
-   - Click **New repository secret**
-   - **Name**: `EC2_SSH_PRIVATE_KEY`
-   - **Value**: Paste the entire key content
-   - Click **Add secret**
-
-**Example SSH Key Format**:
-```
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA2x5q7vZ8kL9mN2pQ3rS4tU5vW6xY7zA8bC9dE0fG1hI2jK3l
-M4nO5pQ6rS7tU8vW9xY0zA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU1vW2xY3zA4bC5
-... (more key content)
------END RSA PRIVATE KEY-----
-```
-
-### 5. Add `BACKEND_ENV` Secret
-
-**Purpose**: Environment variables for the C# backend service
-
-**Steps**:
-
-1. **Prepare environment variables**:
-   - Reference: `backend/.env.example`
-   - Customize for your production environment
-
-2. **Example content**:
-   ```
-   ASPNETCORE_ENVIRONMENT=Production
-   ASPNETCORE_URLS=http://+:5000
-   Logging__LogLevel__Default=Information
-   Logging__LogLevel__Microsoft.AspNetCore=Warning
-   AllowedHosts=*
-   OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxx
-   TEAM_API_URL=https://api.example.com
-   TEAM_API_KEY=your_team_api_key
-   ```
-
-3. **Add to GitHub**:
-   - Click **New repository secret**
-   - **Name**: `BACKEND_ENV`
-   - **Value**: Paste all environment variables (multi-line)
-   - Click **Add secret**
-
-**Common Backend Variables**:
-- `ASPNETCORE_ENVIRONMENT`: Set to `Production`
-- `ASPNETCORE_URLS`: Set to `http://+:5000`
-- `Logging__LogLevel__Default`: Set to `Information`
-- API keys and credentials for external services
-- Database connection strings (if applicable)
-
-### 6. Add `NAMEK_ENV` Secret
-
-**Purpose**: Environment variables for the Node.js frontend service
-
-**Steps**:
-
-1. **Prepare environment variables**:
-   - Reference: `namek/.env.example`
-   - Customize for your production environment
-
-2. **Example content**:
-   ```
-   NODE_ENV=production
-   VITE_API_GATEWAY_URL=http://54.123.45.67:5000
-   VITE_APP_VERSION=1.0.0
-   VITE_APP_TITLE=ABDUL - Hackathon Platform
-   ```
-
-3. **Add to GitHub**:
-   - Click **New repository secret**
-   - **Name**: `NAMEK_ENV`
-   - **Value**: Paste all environment variables (multi-line)
-   - Click **Add secret**
-
-**Important Variables**:
-- `NODE_ENV`: Set to `production`
-- `VITE_API_GATEWAY_URL`: **Must be accessible from browser**
-  - Use EC2 public IP: `http://54.123.45.67:5000`
-  - Or use domain name: `https://api.yourdomain.com`
-  - NOT `http://localhost:5000` (won't work from browser)
-
-### 7. Add `API_GATEWAY_URL` Secret (Optional)
-
-**Purpose**: Backend API URL used during Namek Docker build
-
-**Steps**:
-
-1. Click **New repository secret**
-2. **Name**: `API_GATEWAY_URL`
-3. **Value**: Backend API URL
-   - Example: `http://localhost:5000`
-   - Or: `http://54.123.45.67:5000`
-4. Click **Add secret**
+4. Click **New repository secret**
+5. Enter the **Name** (must match exactly as listed above)
+6. Enter the **Value** (paste the content)
+7. Click **Add secret**
+8. Repeat for all required secrets
 
 ---
 
-## Verification Checklist
+## Secrets Summary Table
 
-After adding all secrets, verify they're correctly configured:
-
-- [x] `EC2_HOST` is set to your EC2 public IP or hostname
-- [x] `EC2_USERNAME` matches your EC2 AMI (ubuntu, ec2-user, etc.)
-- [x] `EC2_SSH_PRIVATE_KEY` contains the full private key (with BEGIN/END lines)
-- [x] `BACKEND_ENV` contains all required backend environment variables
-- [x] `NAMEK_ENV` contains all required frontend environment variables
-- [x] `VITE_API_GATEWAY_URL` in `NAMEK_ENV` is accessible from browser
-- [ ] No secrets are committed to the repository
-- [ ] All secrets are marked as "Secret" type (not visible in logs)
+| Secret Name | Type | Required | Description |
+|-------------|------|----------|-------------|
+| `EC2_HOST` | String | ✅ Yes | EC2 instance IP or hostname |
+| `EC2_USERNAME` | String | ✅ Yes | SSH username (ubuntu/ec2-user) |
+| `EC2_SSH_PRIVATE_KEY` | Secret | ✅ Yes | SSH private key (.ppk or .pem format) |
+| `EC2_SSH_PASSPHRASE` | Secret | ⚠️ If encrypted | Passphrase for encrypted SSH key |
+| `GITHUB_PAT` | Secret | ✅ Yes | GitHub Personal Access Token |
+| `GITHUB_REPO` | String | ✅ Yes | Repository URL (github.com/user/repo.git) |
+| `BACKEND_ENV` | Secret | ✅ Yes | Backend environment variables |
+| `NAMEK_ENV` | Secret | ✅ Yes | Frontend environment variables |
+| `API_GATEWAY_URL` | String | ✅ Yes | API URL for Docker build |
 
 ---
 
-## Testing Secrets
+## Verification
 
-### Test SSH Connection
+After adding all secrets, verify they are set correctly:
 
-After adding secrets, test if GitHub Actions can connect to EC2:
-
-1. Go to **Actions** tab
-2. Select **Build and Deploy to EC2** workflow
-3. Click **Run workflow** → **Run workflow**
-4. Watch the "Setup SSH key" step
-5. If it succeeds, your SSH secrets are correct
-
-### Test Environment Variables
-
-Check if environment variables are correctly passed:
-
-1. SSH into EC2:
-   ```bash
-   ssh -i /path/to/key.pem ubuntu@your-ec2-ip
-   ```
-
-2. Check container environment:
-   ```bash
-   docker inspect abdul-backend | grep -A 20 "Env"
-   docker inspect abdul-namek | grep -A 20 "Env"
-   ```
-
-3. Verify variables are set correctly
+1. Go to **Settings** → **Secrets and variables** → **Actions**
+2. You should see all 9 secrets listed (or 8 if SSH key has no passphrase)
+3. Click on **Actions** tab
+4. Manually trigger the workflow using **Run workflow**
+5. Monitor the workflow execution for any errors
 
 ---
 
 ## Troubleshooting
 
-### "Permission denied (publickey)"
+### Error: Permission denied (publickey)
+- **Check:** `EC2_SSH_PRIVATE_KEY` contains the complete key file (.ppk or .pem)
+- **Check:** If using encrypted key, `EC2_SSH_PASSPHRASE` is correct
+- **Check:** The key matches the one configured in EC2 instance
+- **Check:** `EC2_USERNAME` is correct for your AMI
 
-**Cause**: SSH key is incorrect or not properly formatted
+### Error: Repository not found or authentication failed
+- **Check:** `GITHUB_PAT` has `repo` scope
+- **Check:** `GITHUB_REPO` format is correct (github.com/user/repo.git)
+- **Check:** Token hasn't expired
 
-**Solution**:
-1. Verify the private key file is correct
-2. Check that you copied the entire key (including BEGIN/END lines)
-3. Ensure no extra spaces or line breaks were added
-4. Try the key locally first: `ssh -i key.pem ubuntu@your-ec2-ip`
+### Error: Docker build failed
+- **Check:** `BACKEND_ENV` and `NAMEK_ENV` have correct syntax
+- **Check:** `API_GATEWAY_URL` is a valid URL
+- **Check:** All required environment variables are present
 
-### "Host key verification failed"
-
-**Cause**: EC2 host not in known_hosts
-
-**Solution**:
-- The workflow automatically handles this with `ssh-keyscan`
-- If it fails, manually add the host:
-  ```bash
-  ssh-keyscan -H your-ec2-ip >> ~/.ssh/known_hosts
-  ```
-
-### "Secrets not available in workflow"
-
-**Cause**: Secrets not properly saved or wrong repository
-
-**Solution**:
-1. Verify you're in the correct repository
-2. Check that secret names match exactly (case-sensitive)
-3. Try re-adding the secret
-4. Wait a few minutes for GitHub to sync
-
-### "Environment variables not set in container"
-
-**Cause**: `BACKEND_ENV` or `NAMEK_ENV` not properly formatted
-
-**Solution**:
-1. Verify each line is a valid environment variable: `KEY=VALUE`
-2. No extra spaces or special characters
-3. Multi-line format should have each variable on a new line
-4. Check deployment logs: `/var/log/abdul-deployment.log`
-
-### "API Gateway URL not accessible from browser"
-
-**Cause**: Using `localhost` or internal IP in `VITE_API_GATEWAY_URL`
-
-**Solution**:
-1. Use EC2 public IP: `http://54.123.45.67:5000`
-2. Or use domain name: `https://api.yourdomain.com`
-3. Ensure port 5000 is open in Security Group
-4. Test from browser: `http://your-ec2-ip:5000/health`
+### Error: Container failed to start
+- **Check:** Port 5000 and 3000 are not already in use on EC2
+- **Check:** Environment variables in `BACKEND_ENV` and `NAMEK_ENV` are valid
+- **Check:** Docker has sufficient resources on EC2
 
 ---
 
 ## Security Best Practices
 
-1. **Never commit secrets to repository**:
-   - Use `.gitignore` for `.env` files
-   - Always use GitHub Secrets for sensitive data
-
-2. **Rotate secrets regularly**:
-   - Change API keys every 90 days
+1. **Rotate Secrets Regularly**
+   - Update `GITHUB_PAT` every 90 days
    - Rotate SSH keys annually
-   - Update database passwords periodically
+   - Update API keys when team members change
 
-3. **Limit secret access**:
-   - Only share secrets with team members who need them
-   - Use branch protection rules
-   - Require code reviews before deployment
+2. **Limit Access**
+   - Only give repository admin access to trusted team members
+   - Use the principle of least privilege for GitHub PAT scopes
 
-4. **Monitor secret usage**:
-   - Check GitHub Actions logs for errors
-   - Review deployment history
-   - Set up alerts for failed deployments
+3. **Monitor Usage**
+   - Review GitHub Actions logs regularly
+   - Check for failed authentication attempts
+   - Monitor EC2 access logs
 
-5. **SSH Key Management**:
-   - Keep private keys secure
-   - Never share private keys
-   - Use strong passphrases
-   - Disable old keys when no longer needed
+4. **Backup**
+   - Keep a secure backup of your SSH keys
+   - Document all secret values in a secure password manager
+   - Don't store secrets in code or commit history
 
 ---
 
-## Reference Files
+## Support
 
-- **Backend Environment**: `backend/.env.example`
-- **Frontend Environment**: `namek/.env.example`
-- **Deployment Guide**: `DEPLOYMENT.md`
-- **GitHub Actions Workflow**: `.github/workflows/deploy-to-ec2.yml`
+If you encounter issues with secret configuration:
+1. Check this documentation thoroughly
+2. Review the GitHub Actions workflow logs
+3. Check EC2 system logs: `tail -f /var/log/abdul-deployment.log`
+4. Verify EC2 security group allows SSH (port 22)
 
----
-
-## Next Steps
-
-1. ✅ Add all required secrets
-2. ✅ Verify secrets are correctly configured
-3. ✅ Test SSH connection via GitHub Actions
-4. ✅ Monitor first deployment
-5. ✅ Verify services are running on EC2
-
----
-
-**Last Updated**: 2025-12-01  
-**Version**: 1.0.0
+For more information, see [DEPLOYMENT.md](./DEPLOYMENT.md)
