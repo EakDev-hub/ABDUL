@@ -1,0 +1,116 @@
+name: Build and Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  BACKEND_IMAGE_NAME: abdul-backend
+  NAMEK_IMAGE_NAME: abdul-namek
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Debug - List workspace contents
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Backend directory exists:"
+          ls -la ./backend || echo "Backend directory not found!"
+          echo "Namek directory exists:"
+          ls -la ./namek || echo "Namek directory not found!"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend
+          file: ./Backend/Dockerfile
+          push: false
+          outputs: type=docker,dest=/tmp/backend-image.tar
+          tags: ${{ env.BACKEND_IMAGE_NAME }}:latest
+
+      - name: Build Namek Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./namek
+          file: ./namek/Dockerfile
+          push: false
+          outputs: type=docker,dest=/tmp/namek-image.tar
+          build-args: |
+            BUILD_STAGE=production
+            environment=production
+            namekVersion=${{ github.sha }}
+            dockerport=3000
+            API_GATEWAY_URL=${{ secrets.API_GATEWAY_URL }}
+          tags: ${{ env.NAMEK_IMAGE_NAME }}:latest
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Transfer docker-compose file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            docker-compose.prod.yml \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/docker-compose.yml
+
+      - name: Transfer deployment script to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            scripts/deploy-ec2.sh \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/deploy-ec2.sh
+
+      - name: Transfer backend image to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            /tmp/backend-image.tar \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/backend-image.tar
+
+      - name: Transfer namek image to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            /tmp/namek-image.tar \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/namek-image.tar
+
+      - name: Create .env file on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "cat > /tmp/.env << 'EOF'
+          ${{ secrets.BACKEND_ENV }}
+          ${{ secrets.NAMEK_ENV }}
+          EOF"
+
+      - name: Execute deployment script on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "bash /tmp/deploy-ec2.sh"
+
+      - name: Verify deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "docker ps --filter 'name=abdul' --format 'table {{.Names}}\t{{.Status}}'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_rsa
