@@ -51,7 +51,7 @@
           <div class="summary-grid">
             <div class="stat-box">
               <p class="stat-label">จำนวนข้อที่ทำได้</p>
-              <p class="stat-value">
+              <p class="stat-value stat-answered">
                 {{ result.answeredQuestion }} / {{ result.totalQuestion }} <span class="stat-unit">ข้อ</span>
               </p>
             </div>
@@ -878,11 +878,19 @@ function goBack() {
 }
 
 .stat-highlight {
-  background: linear-gradient(180deg, #FA4786, #002D72, #6B8CFF);
+  background: linear-gradient(180deg, #FFB3D1, #FA4786, #FF6BA3);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 25px rgba(250, 71, 134, 0.8));
+}
+
+.stat-answered {
+  background: linear-gradient(180deg, #B8D4FF, #6B8CFF, #4A6FE8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 25px rgba(107, 140, 255, 0.8));
 }
 
 .stat-duration {
