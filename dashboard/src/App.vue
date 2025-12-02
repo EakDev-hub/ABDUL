@@ -267,7 +267,6 @@ onUnmounted(() => {
           <div v-else class="announcements-list">
             <transition-group name="announcement-fade" tag="div">
               <div v-for="announcement in announcementStore.announcements" :key="announcement.id" class="announcement-item">
-                <span class="announcement-time">{{ formatTime(announcement.postedAt) }}</span>
                 <p class="announcement-message">{{ announcement.text }}</p>
               </div>
             </transition-group>
@@ -326,12 +325,73 @@ onUnmounted(() => {
 }
 
 .dashboard {
-  height: 100vh;
-  background: #000000;
+  min-height: 100vh;
+  background:
+    linear-gradient(0deg, rgba(0, 45, 114, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 45, 114, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, #000814 0%, #000000 100%);
+  background-size: 50px 50px, 50px 50px, 100% 100%;
+  background-position: 0 0, 0 0, center;
+  background-attachment: fixed;
   padding: 8px;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.dashboard::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.dashboard::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(180deg,
+      rgba(250, 71, 134, 0.03) 0%,
+      transparent 50%,
+      rgba(0, 45, 114, 0.03) 100%
+    );
+  pointer-events: none;
+  z-index: 1;
+  will-change: opacity;
+}
+
+.dashboard::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(250, 71, 134, 0.8) 20%,
+    rgba(0, 45, 114, 0.8) 50%,
+    rgba(250, 71, 134, 0.8) 80%,
+    transparent 100%
+  );
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 0 10px rgba(250, 71, 134, 0.5);
+  will-change: transform;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 100vh, 0);
+  }
 }
 
 .dashboard-logo {
@@ -340,9 +400,19 @@ onUnmounted(() => {
   right: 1.5vw;
   height: min(15vh, 15vw);
   width: min(15vh, 15vw);
-  filter: drop-shadow(0 0 10px rgba(250, 71, 134, 0.3));
+  filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 40px rgba(0, 45, 114, 0.4));
   z-index: 10;
   object-fit: contain;
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 40px rgba(0, 45, 114, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px rgba(250, 71, 134, 0.8)) drop-shadow(0 0 50px rgba(0, 45, 114, 0.6));
+  }
 }
 
 .dashboard-content {
@@ -351,8 +421,10 @@ onUnmounted(() => {
   gap: 8px;
   max-width: 100%;
   margin: 0 auto;
-  height: calc(100vh - 16px);
+  min-height: calc(100vh - 16px);
   box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 }
 
 /* Left Panel Styles */
@@ -364,29 +436,67 @@ onUnmounted(() => {
 }
 
 .timer-section {
-  background: #0a0a0a;
+  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 5px 15px rgba(250, 71, 134, 0.3);
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.4),
+    0 0 40px rgba(0, 45, 114, 0.3),
+    inset 0 0 20px rgba(0, 45, 114, 0.1);
   text-align: center;
   border: 2px solid #fa4786;
+  position: relative;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.timer-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(250, 71, 134, 0.1) 50%,
+    transparent 70%
+  );
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .timer-section h2 {
   color: #fa4786;
   margin-bottom: 6px;
   font-size: 1rem;
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.8);
+  position: relative;
+  z-index: 1;
 }
 
 .timer {
   font-size: 4rem;
   font-weight: 700;
   color: #ffffff;
-  font-family: 'Courier New', monospace;
+  font-family: 'Orbitron', 'Courier New', monospace;
   padding: 10px;
   border-radius: 6px;
-  text-shadow: 0 0 15px rgba(250, 71, 134, 0.5);
+  text-shadow:
+    0 0 10px rgba(250, 71, 134, 0.8),
+    0 0 20px rgba(250, 71, 134, 0.6),
+    0 0 30px rgba(0, 45, 114, 0.4);
+  position: relative;
+  z-index: 1;
 }
 
 .timer.finished {
@@ -412,15 +522,45 @@ onUnmounted(() => {
 }
 
 .scoreboard-section {
-  background: #0a0a0a;
+  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 5px 15px rgba(250, 71, 134, 0.3);
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.4),
+    0 0 40px rgba(0, 45, 114, 0.3),
+    inset 0 0 20px rgba(0, 45, 114, 0.1);
   flex: 1;
   border: 2px solid #fa4786;
+  border-image: linear-gradient(45deg, #fa4786, #002d72, #fa4786) 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.scoreboard-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(250, 71, 134, 0.1),
+    transparent
+  );
+  animation: slideLight 3s infinite;
+}
+
+@keyframes slideLight {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .scoreboard-section h2 {
@@ -428,6 +568,9 @@ onUnmounted(() => {
   margin-bottom: 8px;
   font-size: 1rem;
   flex-shrink: 0;
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.8);
+  position: relative;
+  z-index: 1;
 }
 
 .table-container {
@@ -442,12 +585,14 @@ onUnmounted(() => {
 }
 
 .scoreboard-table thead th {
-  background: #fa4786;
+  background: linear-gradient(135deg, #fa4786 0%, #002d72 100%);
   color: white;
   padding: 6px;
   text-align: left;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.75rem;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 10px rgba(250, 71, 134, 0.3);
 }
 
 .scoreboard-table thead th:first-child {
@@ -459,23 +604,24 @@ onUnmounted(() => {
 }
 
 .scoreboard-table tbody tr {
-  border-bottom: 1px solid #1a1a1a;
-  transition: background-color 0.3s;
+  border-bottom: 1px solid rgba(0, 45, 114, 0.3);
+  transition: all 0.3s;
 }
 
 .scoreboard-table tbody tr:hover {
-  background-color: #1a1a1a;
+  background: linear-gradient(90deg, rgba(250, 71, 134, 0.1) 0%, rgba(0, 45, 114, 0.1) 100%);
+  box-shadow: 0 0 15px rgba(250, 71, 134, 0.2);
 }
 
 .scoreboard-table tbody td {
   padding: 6px;
-  font-size: 1rem;
+  font-size: 0.75rem;
   color: #e2e8f0;
 }
 
 .rank {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.75rem;
 }
 
 .team-name {
@@ -486,7 +632,7 @@ onUnmounted(() => {
 .score {
   font-weight: 700;
   color: #fa4786;
-  font-size: 1rem;
+  font-size: 0.75rem;
 }
 
 .first-place {
@@ -526,12 +672,16 @@ onUnmounted(() => {
 }
 
 .datetime-section {
-  background: #0a0a0a;
+  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
   border-radius: 8px;
   padding: 6px;
-  box-shadow: 0 5px 15px rgba(250, 71, 134, 0.3);
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.4),
+    0 0 40px rgba(0, 45, 114, 0.3),
+    inset 0 0 20px rgba(0, 45, 114, 0.1);
   text-align: center;
-  border: 2px solid #fa4786;
+  border: 2px solid;
+  border-image: linear-gradient(90deg, #fa4786, #002d72, #fa4786) 1;
   flex-shrink: 0;
 }
 
@@ -539,6 +689,7 @@ onUnmounted(() => {
   color: #fa4786;
   margin-bottom: 4px;
   font-size: 0.85rem;
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.8);
 }
 
 .datetime {
@@ -548,19 +699,26 @@ onUnmounted(() => {
   font-family: 'Courier New', monospace;
   padding: 4px;
   border-radius: 6px;
-  text-shadow: 0 0 10px rgba(250, 71, 134, 0.3);
+  text-shadow:
+    0 0 5px rgba(250, 71, 134, 0.6),
+    0 0 10px rgba(0, 45, 114, 0.4);
 }
 
 .announcements-section {
-  background: #0a0a0a;
+  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 5px 15px rgba(250, 71, 134, 0.3);
-  border: 2px solid #fa4786;
-  flex: 1;
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.4),
+    0 0 40px rgba(0, 45, 114, 0.3),
+    inset 0 0 20px rgba(0, 45, 114, 0.1);
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #fa4786, #002d72) 1;
+  flex: 0.8;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .announcements-section h2 {
@@ -568,6 +726,9 @@ onUnmounted(() => {
   margin-bottom: 6px;
   font-size: 1rem;
   flex-shrink: 0;
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.8);
+  position: relative;
+  z-index: 1;
 }
 
 .announcements-list {
@@ -578,15 +739,19 @@ onUnmounted(() => {
 .announcement-item {
   padding: 6px;
   margin-bottom: 5px;
-  background: #1a1a1a;
+  background: linear-gradient(90deg, rgba(0, 45, 114, 0.2) 0%, rgba(26, 26, 26, 0.8) 100%);
   border-left: 3px solid #fa4786;
   border-radius: 4px;
-  transition: transform 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 45, 114, 0.2);
 }
 
 .announcement-item:hover {
   transform: translateX(5px);
-  background: #2a2a2a;
+  background: linear-gradient(90deg, rgba(250, 71, 134, 0.2) 0%, rgba(42, 42, 42, 0.9) 100%);
+  box-shadow:
+    0 0 10px rgba(250, 71, 134, 0.3),
+    0 0 20px rgba(0, 45, 114, 0.2);
 }
 
 .announcement-time {
@@ -604,15 +769,20 @@ onUnmounted(() => {
 }
 
 .qa-section {
-  background: #0a0a0a;
+  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 5px 15px rgba(250, 71, 134, 0.3);
-  border: 2px solid #fa4786;
-  flex: 1;
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.4),
+    0 0 40px rgba(0, 45, 114, 0.3),
+    inset 0 0 20px rgba(0, 45, 114, 0.1);
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #002d72, #fa4786) 1;
+  flex: 1.5;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .qa-section h2 {
@@ -620,6 +790,9 @@ onUnmounted(() => {
   margin-bottom: 6px;
   font-size: 1rem;
   flex-shrink: 0;
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.8);
+  position: relative;
+  z-index: 1;
 }
 
 .qa-list {
@@ -630,24 +803,27 @@ onUnmounted(() => {
 .qa-item {
   padding: 6px;
   margin-bottom: 6px;
-  background: #1a1a1a;
+  background: linear-gradient(90deg, rgba(0, 45, 114, 0.15) 0%, rgba(26, 26, 26, 0.8) 100%);
   border-radius: 4px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid rgba(0, 45, 114, 0.4);
+  transition: all 0.3s;
 }
 
 .qa-item:hover {
-  background: #2a2a2a;
+  background: linear-gradient(90deg, rgba(250, 71, 134, 0.15) 0%, rgba(42, 42, 42, 0.9) 100%);
+  border-color: rgba(250, 71, 134, 0.4);
+  box-shadow: 0 0 10px rgba(250, 71, 134, 0.2);
 }
 
 .question {
   color: #e2e8f0;
   margin-bottom: 3px;
-  font-size: 1rem;
+  font-size: 0.75rem;
 }
 
 .answer {
   color: #a0aec0;
-  font-size: 1rem;
+  font-size: 0.75rem;
   padding-left: 12px;
 }
 
@@ -658,9 +834,11 @@ onUnmounted(() => {
   justify-content: space-between;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #2a2a2a;
+  border-top: 1px solid rgba(0, 45, 114, 0.5);
   flex-shrink: 0;
   gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .qr-container {
@@ -677,7 +855,9 @@ onUnmounted(() => {
   border-radius: 4px;
   padding: 5px;
   background: white;
-  box-shadow: 0 0 10px rgba(250, 71, 134, 0.3);
+  box-shadow:
+    0 0 15px rgba(250, 71, 134, 0.5),
+    0 0 30px rgba(0, 45, 114, 0.3);
 }
 
 .qr-label {
@@ -685,6 +865,7 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 0.7rem;
   text-align: center;
+  text-shadow: 0 0 8px rgba(250, 71, 134, 0.6);
 }
 
 /* Sponsor Section */
@@ -701,6 +882,7 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 0.8rem;
   text-align: center;
+  text-shadow: 0 0 8px rgba(250, 71, 134, 0.6);
 }
 
 .sponsor-logo-container {
@@ -717,17 +899,19 @@ onUnmounted(() => {
   width: auto;
   max-width: 70px;
   object-fit: contain;
-  filter: drop-shadow(0 0 5px rgba(250, 71, 134, 0.2));
+  filter: drop-shadow(0 0 8px rgba(250, 71, 134, 0.3)) drop-shadow(0 0 15px rgba(0, 45, 114, 0.2));
   transition: all 0.3s ease;
   background: white;
   padding: 5px;
   border-radius: 4px;
+  border: 1px solid rgba(0, 45, 114, 0.2);
 }
 
 .sponsor-logo:hover {
   transform: scale(1.08);
-  filter: drop-shadow(0 0 12px rgba(250, 71, 134, 0.5));
+  filter: drop-shadow(0 0 15px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 25px rgba(0, 45, 114, 0.4));
   background: white;
+  border-color: rgba(250, 71, 134, 0.4);
 }
 
 /* Scrollbar Styles */
@@ -741,12 +925,14 @@ onUnmounted(() => {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #fa4786;
+  background: linear-gradient(180deg, #fa4786 0%, #002d72 100%);
   border-radius: 10px;
+  box-shadow: 0 0 5px rgba(250, 71, 134, 0.5);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff5a96;
+  background: linear-gradient(180deg, #ff5a96 0%, #003d92 100%);
+  box-shadow: 0 0 10px rgba(250, 71, 134, 0.7);
 }
 
 /* Announcement Transitions */
@@ -819,13 +1005,60 @@ onUnmounted(() => {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+  .dashboard {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
   .dashboard-content {
     grid-template-columns: 1fr;
     height: auto;
+    min-height: calc(100vh - 16px);
+  }
+  
+  .left-panel,
+  .right-panel {
+    height: auto;
+    min-height: 50vh;
+  }
+
+  .scoreboard-section,
+  .announcements-section,
+  .qa-section {
+    min-height: 400px;
+    max-height: 600px;
   }
   
   .timer {
     font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 4px;
+    overflow-y: auto;
+  }
+
+  .dashboard-content {
+    gap: 4px;
+  }
+
+  .timer {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-logo {
+    height: min(10vh, 10vw);
+    width: min(10vh, 10vw);
+  }
+
+  .scoreboard-section,
+  .announcements-section,
+  .qa-section {
+    min-height: 300px;
+    max-height: 500px;
   }
 }
 </style>
