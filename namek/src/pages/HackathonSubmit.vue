@@ -27,6 +27,16 @@
     <!-- Main Content -->
     <div v-if="showTerminal" class="terminal-blocker"></div>
     <div class="main-content">
+      <!-- TURBO Title -->
+      <div class="turbo-title-container">
+        <h1 class="turbo-title">
+          <span class="turbo-text" data-text="TURBO">
+            TURBO
+            <span class="grunge-overlay"></span>
+          </span>
+        </h1>
+      </div>
+
       <!-- Header -->
       <div class="header-section">
         <h1 class="main-title">
@@ -500,8 +510,159 @@ async function handleSubmit() {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  gap: 1rem;
+  gap: 0.5rem;
 }
+
+/* TURBO Title */
+.turbo-title-container {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  animation: turboSlideDown 1s ease-out;
+}
+
+@keyframes turboSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turbo-title {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: 15px;
+  margin: 0;
+  text-transform: uppercase;
+  position: relative;
+  display: inline-block;
+}
+
+.turbo-text {
+  position: relative;
+  display: inline-block;
+  color: #ffffff;
+}
+
+.grunge-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 5% 10%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 8% 18%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 12% 28%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 15% 35%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 17% 42%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 20% 50%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 22% 58%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 25% 65%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 27% 72%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 30% 80%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 32% 88%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 35% 15%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 37% 22%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 40% 30%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 42% 38%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 45% 45%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 47% 52%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 50% 60%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 52% 68%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 55% 75%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 57% 82%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 60% 25%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 62% 32%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 65% 40%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 67% 48%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 70% 55%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 72% 62%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 75% 70%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 77% 78%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 80% 85%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 82% 92%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 85% 10%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 87% 18%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 90% 30%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 92% 38%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 95% 50%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 97% 58%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 12% 70%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 14% 78%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 18% 90%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 22% 10%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 24% 18%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 28% 25%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 32% 40%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 34% 48%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 38% 55%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 42% 70%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 44% 78%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 48% 85%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 52% 15%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 54% 22%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 58% 35%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 62% 50%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 64% 58%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 68% 65%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 72% 80%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 74% 88%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 78% 20%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 82% 40%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 84% 48%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 88% 60%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 92% 75%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 94% 82%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 8% 45%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 14% 60%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 16% 68%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 26% 75%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 34% 90%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 36% 95%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 44% 5%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 46% 12%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 56% 8%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 66% 12%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 76% 5%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 86% 8%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 96% 15%, rgba(0,0,0,0.9) 1px, transparent 1px);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: multiply;
+}
+
+.turbo-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 100%;
+  height: 100%;
+  color: rgba(250, 71, 134, 0.6);
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.turbo-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 100%;
+  height: 100%;
+  color: rgba(107, 140, 255, 0.6);
+  z-index: -2;
+  filter: blur(2px);
+}
+
 
 /* Header */
 .header-section {
@@ -1156,6 +1317,12 @@ async function handleSubmit() {
   .main-content {
     padding: 1rem;
   }
+
+  .turbo-title {
+    font-size: 2.5rem;
+    letter-spacing: 8px;
+  }
+
   .main-title {
     font-size: 1.8rem;
     letter-spacing: 2px;
