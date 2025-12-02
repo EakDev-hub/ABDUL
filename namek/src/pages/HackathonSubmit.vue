@@ -10,17 +10,13 @@
       <div v-for="i in 5" :key="i" class="holo-line"></div>
     </div>
 
-    <!-- Loading Modal - Random between Terminal and Sci-Fi -->
+    <!-- Loading Modal - Sequential (cycles through all loading types) -->
     <transition name="terminal-fade">
-      <TerminalLoading
-        v-if="showTerminal && loadingMode === 'terminal'"
+      <RandomLoading
+        v-if="showTerminal"
         :is-active="showTerminal"
         :stop-requested="animationStopRequested"
-      />
-      <SciFiLoading
-        v-else-if="showTerminal && loadingMode === 'scifi'"
-        :is-active="showTerminal"
-        :stop-requested="animationStopRequested"
+        mode="sequence"
       />
     </transition>
 
@@ -184,14 +180,13 @@ import { useRouter } from 'vue-router'
 import { useHackathonStore } from '@/store/hackathon.store'
 import { hackathonService } from '@/services/hackathon.service'
 import type { SubmitRequest } from '@/types/hackathon'
-import TerminalLoading from '@/components/TerminalLoading.vue'
-import SciFiLoading from '@/components/SciFiLoading.vue'
+import RandomLoading from '@/components/RandomLoading.vue'
 
 const router = useRouter()
 const hackathonStore = useHackathonStore()
 
-// Loading mode - randomly choose between 'terminal' and 'scifi'
-const loadingMode = ref<'terminal' | 'scifi'>('terminal')
+// Loading mode - sequential (will cycle through all loading types)
+const loadingMode = ref<'sequence'>('sequence')
 
 // Particle animation
 function getParticleStyle(index: number) {
@@ -289,10 +284,7 @@ async function handleSubmit() {
 
   hackathonStore.setLoading(true)
 
-  // Randomly choose loading mode
-  loadingMode.value = Math.random() > 0.5 ? 'terminal' : 'scifi'
-
-  // Show loading
+  // Show loading (RandomLoading component will handle sequential selection)
   showTerminal.value = true
 
   // Random minimum delay between 5-10 seconds (5000-10000 ms)
