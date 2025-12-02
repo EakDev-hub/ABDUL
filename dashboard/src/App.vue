@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 // Hackathon finish time - Set your actual finish time here
-const hackathonFinishTime = new Date('2025-11-30T18:00:00').getTime()
+const hackathonFinishTime = new Date('2025-11-19T12:00:00').getTime()
 
 // Current time
 const currentTime = ref(new Date())
@@ -26,9 +26,9 @@ const teams = ref([
 
 // Announcements
 const announcements = ref([
-  { id: 1, time: '14:00', message: 'Hackathon has officially started! Good luck to all teams!' },
-  { id: 2, time: '15:30', message: 'Reminder: Lunch break at 16:00-17:00' },
-  { id: 3, time: '16:45', message: 'API documentation has been updated. Check your email!' }
+  { id: 1, time: '14:00', message: 'แฮกกาธอนเริ่มต้นแล้ว! ขอให้ทุกทีมโชคดี!' },
+  { id: 2, time: '15:30', message: 'แจ้งเตือน: พักรับประทานอาหารกลางวัน 16:00-17:00 น.' },
+  { id: 3, time: '16:45', message: 'เอกสาร API ได้รับการอัปเดตแล้ว กรุณาตรวจสอบอีเมล!' }
 ])
 
 // Q&A items
@@ -112,7 +112,7 @@ onUnmounted(() => {
         <div class="timer-section">
           <h2>⏱️ Time Remaining</h2>
           <div class="timer" :class="{ 'finished': timeRemaining.isFinished }">
-            {{ timeRemaining.isFinished ? 'FINISHED!' : formattedTimer }}
+            {{ timeRemaining.isFinished ? "Time's up" : formattedTimer }}
           </div>
         </div>
 
@@ -142,15 +142,6 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Sponsor Logo Section -->
-        <div class="sponsor-section">
-          <h2>🤝 Sponsors</h2>
-          <div class="sponsor-logo-container">
-            <img src="./assets/images/logo.png" alt="Sponsor Logo" class="sponsor-logo" />
-            <img src="./assets/images/logo.png" alt="Sponsor Logo" class="sponsor-logo" />
-            <img src="./assets/images/logo.png" alt="Sponsor Logo" class="sponsor-logo" />
-          </div>
-        </div>
       </div>
 
       <!-- Right Side -->
@@ -181,9 +172,20 @@ onUnmounted(() => {
               <p class="answer"><strong>A:</strong> {{ qa.answer }}</p>
             </div>
           </div>
-          <div class="qr-container">
-            <p class="qr-label">📱 Scan to submit your question</p>
-            <img :src="qrCodeUrl" alt="Q&A QR Code" class="qr-code" />
+          <div class="qr-sponsor-wrapper">
+            <div class="qr-container">
+              <p class="qr-label">📱 Scan to submit your question</p>
+              <img :src="qrCodeUrl" alt="Q&A QR Code" class="qr-code" />
+            </div>
+            <div class="sponsor-section">
+              <p class="sponsor-title">Sponsored by</p>
+              <div class="sponsor-logo-container">
+                <img src="./assets/images/sponsor/aws.png" alt="AWS" class="sponsor-logo" />
+                <img src="./assets/images/sponsor/mtl.png" alt="MTL" class="sponsor-logo" />
+                <img src="./assets/images/sponsor/ngernturbo.png" alt="Ngern Turbo" class="sponsor-logo" />
+                <img src="./assets/images/sponsor/viriyah.png" alt="Viriyah" class="sponsor-logo" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -192,6 +194,8 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -202,24 +206,25 @@ onUnmounted(() => {
   height: 100vh;
   background: #000000;
   padding: 8px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   position: relative;
   overflow: hidden;
 }
 
 .dashboard-logo {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  height: 200px;
-  width: 200px;
+  top: 1vh;
+  right: 1.5vw;
+  height: min(15vh, 15vw);
+  width: min(15vh, 15vw);
   filter: drop-shadow(0 0 10px rgba(250, 71, 134, 0.3));
   z-index: 10;
+  object-fit: contain;
 }
 
 .dashboard-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 40fr 60fr;
   gap: 8px;
   max-width: 100%;
   margin: 0 auto;
@@ -319,7 +324,7 @@ onUnmounted(() => {
   padding: 6px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .scoreboard-table thead th:first-child {
@@ -341,13 +346,13 @@ onUnmounted(() => {
 
 .scoreboard-table tbody td {
   padding: 6px;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #e2e8f0;
 }
 
 .rank {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .team-name {
@@ -358,7 +363,7 @@ onUnmounted(() => {
 .score {
   font-weight: 700;
   color: #fa4786;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .first-place {
@@ -388,44 +393,6 @@ onUnmounted(() => {
   color: #cd7f32;
 }
 
-/* Sponsor Section Styles */
-.sponsor-section {
-  background: #0a0a0a;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 5px 20px rgba(250, 71, 134, 0.4);
-  border: 2px solid #fa4786;
-  flex-shrink: 0;
-  text-align: center;
-}
-
-.sponsor-section h2 {
-  color: #fa4786;
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-}
-
-.sponsor-logo-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  padding: 15px;
-}
-
-.sponsor-logo {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(250, 71, 134, 0.5));
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-.sponsor-logo:hover {
-  transform: scale(1.05);
-  filter: drop-shadow(0 0 30px rgba(250, 71, 134, 0.7));
-}
 
 /* Right Panel Styles */
 .right-panel {
@@ -503,14 +470,14 @@ onUnmounted(() => {
   font-weight: 700;
   color: #fa4786;
   margin-right: 6px;
-  font-size: 0.7rem;
+  font-size: 1rem;
 }
 
 .announcement-message {
   color: #cbd5e0;
   margin-top: 2px;
   line-height: 1.2;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .qa-section {
@@ -552,23 +519,32 @@ onUnmounted(() => {
 .question {
   color: #e2e8f0;
   margin-bottom: 3px;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .answer {
   color: #a0aec0;
-  font-size: 0.7rem;
+  font-size: 1rem;
   padding-left: 12px;
+}
+
+.qr-sponsor-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #2a2a2a;
+  flex-shrink: 0;
+  gap: 20px;
 }
 
 .qr-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #2a2a2a;
-  flex-shrink: 0;
+  gap: 5px;
 }
 
 .qr-code {
@@ -579,7 +555,6 @@ onUnmounted(() => {
   padding: 5px;
   background: white;
   box-shadow: 0 0 10px rgba(250, 71, 134, 0.3);
-  margin-top: 5px;
 }
 
 .qr-label {
@@ -587,6 +562,49 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 0.7rem;
   text-align: center;
+}
+
+/* Sponsor Section */
+.sponsor-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: flex-end;
+  gap: 8px;
+}
+
+.sponsor-title {
+  color: #fa4786;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.sponsor-logo-container {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.sponsor-logo {
+  height: 40px;
+  width: auto;
+  max-width: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(250, 71, 134, 0.2));
+  transition: all 0.3s ease;
+  background: white;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.sponsor-logo:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 12px rgba(250, 71, 134, 0.5));
+  background: white;
 }
 
 /* Scrollbar Styles */
