@@ -171,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHackathonStore } from '@/store/hackathon.store'
 import { hackathonService } from '@/services/hackathon.service'
@@ -217,6 +217,25 @@ const animationStopRequested = ref(false)
 
 const isLoading = computed(() => hackathonStore.isLoading)
 const error = computed(() => hackathonStore.error)
+
+// Watch for changes in form fields and clear their errors
+watch(() => formData.value.team, (newValue) => {
+  if (newValue && errors.value.team) {
+    errors.value.team = ''
+  }
+})
+
+watch(() => formData.value.passKey, (newValue) => {
+  if (newValue && errors.value.passKey) {
+    errors.value.passKey = ''
+  }
+})
+
+watch(() => formData.value.apiUrl, (newValue) => {
+  if (newValue && errors.value.apiUrl) {
+    errors.value.apiUrl = ''
+  }
+})
 
 function stopAnimation() {
   animationStopRequested.value = true
@@ -893,9 +912,10 @@ async function handleSubmit() {
 .cyber-button {
   width: 100%;
   padding: 1.2rem;
-  background: transparent;
-  border: 2px solid #FA4786;
-  color: #FA4786;
+  background: linear-gradient(135deg, rgba(0, 10, 30, 0.7) 0%, rgba(10, 5, 40, 0.75) 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  color: #FFB3D1;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
@@ -907,63 +927,95 @@ async function handleSubmit() {
   margin-top: 1rem;
   letter-spacing: 2px;
   text-transform: uppercase;
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.25),
+    0 0 30px rgba(107, 140, 255, 0.15),
+    inset 0 0 20px rgba(250, 71, 134, 0.08),
+    inset 0 0 30px rgba(107, 140, 255, 0.05);
+  animation: buttonGlow 3s ease-in-out infinite;
 }
 
 .cyber-button::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(250, 71, 134, 0.1), rgba(0, 45, 114, 0.1), rgba(107, 140, 255, 0.08));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  inset: -2px;
+  background: linear-gradient(135deg, #FA4786 0%, #002D72 50%, #6B8CFF 100%);
+  border-radius: inherit;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  z-index: -1;
+  opacity: 0.5;
+  animation: borderFlow 4s linear infinite;
 }
 
 .cyber-button::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(250, 71, 134, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.5s ease, height 0.5s ease;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(250, 71, 134, 0.05) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(107, 140, 255, 0.05) 100%);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes buttonGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(250, 71, 134, 0.25),
+      0 0 30px rgba(107, 140, 255, 0.15),
+      inset 0 0 20px rgba(250, 71, 134, 0.08),
+      inset 0 0 30px rgba(107, 140, 255, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(250, 71, 134, 0.35),
+      0 0 40px rgba(107, 140, 255, 0.25),
+      inset 0 0 25px rgba(250, 71, 134, 0.12),
+      inset 0 0 35px rgba(107, 140, 255, 0.08);
+  }
 }
 
 .cyber-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  border-color: #444;
-  color: #444;
+  animation: none;
+  box-shadow: none;
 }
 
-.cyber-button:hover:not(:disabled)::before {
-  opacity: 1;
+.cyber-button:disabled::before {
+  animation: none;
+  background: #444;
+  opacity: 0.3;
 }
 
-.cyber-button:hover:not(:disabled)::after {
-  width: 300px;
-  height: 300px;
+.cyber-button:disabled::after {
+  animation: none;
 }
 
 .cyber-button:hover:not(:disabled) {
-  background: rgba(250, 71, 134, 0.05);
-  box-shadow:
-    0 0 30px rgba(250, 71, 134, 0.5),
-    inset 0 0 30px rgba(250, 71, 134, 0.1);
-  letter-spacing: 3px;
   transform: translateY(-2px);
+  box-shadow:
+    0 0 35px rgba(250, 71, 134, 0.4),
+    0 0 50px rgba(107, 140, 255, 0.3),
+    inset 0 0 30px rgba(250, 71, 134, 0.15),
+    inset 0 0 40px rgba(107, 140, 255, 0.1);
+  letter-spacing: 3px;
+}
+
+.cyber-button:hover:not(:disabled)::before {
+  opacity: 0.7;
 }
 
 .cyber-button:active:not(:disabled) {
   transform: translateY(0);
   box-shadow:
-    0 0 20px rgba(250, 71, 134, 0.3),
-    inset 0 0 20px rgba(250, 71, 134, 0.2);
+    0 0 20px rgba(250, 71, 134, 0.25),
+    0 0 30px rgba(107, 140, 255, 0.15),
+    inset 0 0 20px rgba(250, 71, 134, 0.08),
+    inset 0 0 30px rgba(107, 140, 255, 0.05);
 }
 
 .button-content {
@@ -973,6 +1025,26 @@ async function handleSubmit() {
   gap: 0.8rem;
   position: relative;
   z-index: 2;
+  text-shadow:
+    0 0 8px rgba(255, 179, 209, 0.4),
+    0 0 12px rgba(250, 71, 134, 0.3),
+    0 0 16px rgba(107, 140, 255, 0.2);
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 8px rgba(255, 179, 209, 0.4),
+      0 0 12px rgba(250, 71, 134, 0.3),
+      0 0 16px rgba(107, 140, 255, 0.2);
+  }
+  50% {
+    text-shadow:
+      0 0 10px rgba(255, 179, 209, 0.5),
+      0 0 16px rgba(250, 71, 134, 0.4),
+      0 0 22px rgba(107, 140, 255, 0.3);
+  }
 }
 
 .button-text,
@@ -985,13 +1057,19 @@ async function handleSubmit() {
 .button-icon {
   width: 26px;
   height: 26px;
-  filter: drop-shadow(0 0 5px currentColor);
-  animation: iconPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(250, 71, 134, 0.5)) drop-shadow(0 0 8px rgba(107, 140, 255, 0.3));
+  animation: iconPulse 3s ease-in-out infinite;
 }
 
 @keyframes iconPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(250, 71, 134, 0.5)) drop-shadow(0 0 8px rgba(107, 140, 255, 0.3));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 7px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 10px rgba(107, 140, 255, 0.4));
+  }
 }
 
 .button-glint {

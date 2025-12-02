@@ -420,8 +420,8 @@ onUnmounted(() => {
 .center-frame {
   width: 220px;
   height: 140px;
-  background: linear-gradient(135deg, rgba(0, 10, 30, 0.95) 0%, rgba(10, 5, 40, 0.98) 100%);
-  border: 3px solid transparent;
+  background: linear-gradient(135deg, rgba(0, 10, 30, 0.7) 0%, rgba(10, 5, 40, 0.75) 100%);
+  border: 2px solid transparent;
   background-clip: padding-box;
   position: relative;
   display: flex;
@@ -431,22 +431,23 @@ onUnmounted(() => {
   gap: 0.5rem;
   clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
   box-shadow:
-    0 0 40px rgba(250, 71, 134, 0.6),
-    0 0 60px rgba(107, 140, 255, 0.4),
-    inset 0 0 40px rgba(250, 71, 134, 0.15),
-    inset 0 0 60px rgba(107, 140, 255, 0.1);
-  animation: frameGlow 2s ease-in-out infinite;
+    0 0 20px rgba(250, 71, 134, 0.25),
+    0 0 30px rgba(107, 140, 255, 0.15),
+    inset 0 0 20px rgba(250, 71, 134, 0.08),
+    inset 0 0 30px rgba(107, 140, 255, 0.05);
+  animation: frameGlow 3s ease-in-out infinite;
 }
 
 .center-frame::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -2px;
   background: linear-gradient(135deg, #FA4786 0%, #002D72 50%, #6B8CFF 100%);
   border-radius: inherit;
   clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
   z-index: -1;
-  animation: borderFlow 3s linear infinite;
+  opacity: 0.5;
+  animation: borderFlow 4s linear infinite;
 }
 
 .center-frame::after {
@@ -454,29 +455,29 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg,
-    rgba(250, 71, 134, 0.1) 0%,
+    rgba(250, 71, 134, 0.05) 0%,
     transparent 30%,
     transparent 70%,
-    rgba(107, 140, 255, 0.1) 100%);
+    rgba(107, 140, 255, 0.05) 100%);
   clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-  animation: shimmer 2s ease-in-out infinite;
+  animation: shimmer 3s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes frameGlow {
   0%, 100% {
     box-shadow:
-      0 0 40px rgba(250, 71, 134, 0.6),
-      0 0 60px rgba(107, 140, 255, 0.4),
-      inset 0 0 40px rgba(250, 71, 134, 0.15),
-      inset 0 0 60px rgba(107, 140, 255, 0.1);
+      0 0 20px rgba(250, 71, 134, 0.25),
+      0 0 30px rgba(107, 140, 255, 0.15),
+      inset 0 0 20px rgba(250, 71, 134, 0.08),
+      inset 0 0 30px rgba(107, 140, 255, 0.05);
   }
   50% {
     box-shadow:
-      0 0 60px rgba(250, 71, 134, 0.8),
-      0 0 80px rgba(107, 140, 255, 0.6),
-      inset 0 0 50px rgba(250, 71, 134, 0.2),
-      inset 0 0 70px rgba(107, 140, 255, 0.15);
+      0 0 30px rgba(250, 71, 134, 0.35),
+      0 0 40px rgba(107, 140, 255, 0.25),
+      inset 0 0 25px rgba(250, 71, 134, 0.12),
+      inset 0 0 35px rgba(107, 140, 255, 0.08);
   }
 }
 
@@ -517,17 +518,17 @@ onUnmounted(() => {
   letter-spacing: 2px;
   text-align: center;
   text-shadow:
-    0 0 10px rgba(255, 179, 209, 0.8),
-    0 0 20px rgba(250, 71, 134, 0.6),
-    0 0 30px rgba(107, 140, 255, 0.4);
-  animation: textGlow 2s ease-in-out infinite;
+    0 0 8px rgba(255, 179, 209, 0.4),
+    0 0 12px rgba(250, 71, 134, 0.3),
+    0 0 16px rgba(107, 140, 255, 0.2);
+  animation: textGlow 3s ease-in-out infinite;
   position: relative;
   z-index: 1;
   padding: 0.5rem 1rem;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(250, 71, 134, 0.1) 20%,
-    rgba(107, 140, 255, 0.1) 80%,
+    rgba(250, 71, 134, 0.05) 20%,
+    rgba(107, 140, 255, 0.05) 80%,
     transparent 100%);
   border-radius: 4px;
 }
@@ -535,15 +536,15 @@ onUnmounted(() => {
 @keyframes textGlow {
   0%, 100% {
     text-shadow:
-      0 0 10px rgba(255, 179, 209, 0.8),
-      0 0 20px rgba(250, 71, 134, 0.6),
-      0 0 30px rgba(107, 140, 255, 0.4);
+      0 0 8px rgba(255, 179, 209, 0.4),
+      0 0 12px rgba(250, 71, 134, 0.3),
+      0 0 16px rgba(107, 140, 255, 0.2);
   }
   50% {
     text-shadow:
-      0 0 15px rgba(255, 179, 209, 1),
-      0 0 30px rgba(250, 71, 134, 0.8),
-      0 0 45px rgba(107, 140, 255, 0.6);
+      0 0 10px rgba(255, 179, 209, 0.5),
+      0 0 16px rgba(250, 71, 134, 0.4),
+      0 0 22px rgba(107, 140, 255, 0.3);
   }
 }
 
