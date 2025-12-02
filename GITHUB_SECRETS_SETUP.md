@@ -191,7 +191,30 @@ DOCKER_PORT=3000
 
 ---
 
-### 9. API_GATEWAY_URL
+### 9. DASHBOARD_ENV
+
+**Description:** Environment variables for the Dashboard frontend service.
+
+**Format:** Multi-line string with KEY=VALUE pairs
+
+**Example:**
+```
+NODE_ENV=production
+VITE_API_BASE_URL=http://localhost:5000
+VITE_APP_ENV=production
+```
+
+**Reference:** See `dashboard/.env.example` for all available options
+
+**Important:**
+- `VITE_API_BASE_URL` should point to the backend API
+- For internal Docker communication, use `http://localhost:5000`
+- The dashboard connects to the backend API for data
+- Vite environment variables must be prefixed with `VITE_`
+
+---
+
+### 10. API_GATEWAY_URL
 
 **Description:** The backend API URL used during the Docker build process.
 
@@ -233,7 +256,8 @@ DOCKER_PORT=3000
 | `PAT_GITHUB` | Secret | ✅ Yes | GitHub Personal Access Token |
 | `REPO_GITHUB` | String | ✅ Yes | Repository URL (github.com/user/repo.git) |
 | `BACKEND_ENV` | Secret | ✅ Yes | Backend environment variables |
-| `NAMEK_ENV` | Secret | ✅ Yes | Frontend environment variables |
+| `NAMEK_ENV` | Secret | ✅ Yes | Namek frontend environment variables |
+| `DASHBOARD_ENV` | Secret | ✅ Yes | Dashboard frontend environment variables |
 | `API_GATEWAY_URL` | String | ✅ Yes | API URL for Docker build |
 
 ---
@@ -243,7 +267,7 @@ DOCKER_PORT=3000
 After adding all secrets, verify they are set correctly:
 
 1. Go to **Settings** → **Secrets and variables** → **Actions**
-2. You should see all 9 secrets listed (or 8 if SSH key has no passphrase)
+2. You should see all 10 secrets listed (or 9 if SSH key has no passphrase)
 3. Click on **Actions** tab
 4. Manually trigger the workflow using **Run workflow**
 5. Monitor the workflow execution for any errors
@@ -308,13 +332,13 @@ If you still encounter passphrase errors after the latest update:
 - **Check:** Token hasn't expired
 
 ### Error: Docker build failed
-- **Check:** `BACKEND_ENV` and `NAMEK_ENV` have correct syntax
+- **Check:** `BACKEND_ENV`, `NAMEK_ENV`, and `DASHBOARD_ENV` have correct syntax
 - **Check:** `API_GATEWAY_URL` is a valid URL
 - **Check:** All required environment variables are present
 
 ### Error: Container failed to start
-- **Check:** Port 5000 and 3000 are not already in use on EC2
-- **Check:** Environment variables in `BACKEND_ENV` and `NAMEK_ENV` are valid
+- **Check:** Ports 5000, 3000, and 8080 are not already in use on EC2
+- **Check:** Environment variables in `BACKEND_ENV`, `NAMEK_ENV`, and `DASHBOARD_ENV` are valid
 - **Check:** Docker has sufficient resources on EC2
 
 ---

@@ -43,6 +43,27 @@ services:
       retries: 3
       start_period: 40s
 
+  dashboard:
+    image: abdul-dashboard:latest
+    container_name: abdul-dashboard
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - abdul-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 networks:
   abdul-network:
     driver: bridge
