@@ -14,6 +14,11 @@ RUN dotnet publish AbdulBackend.csproj -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# Install curl and clean up in a single layer to minimize image size
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy the published app
 COPY --from=build /app/publish .
 
