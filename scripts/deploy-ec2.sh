@@ -167,6 +167,13 @@ docker build -t abdul-namek:latest \
     "$DEPLOYMENT_DIR/namek" || error "Failed to build namek image"
 log "Namek image built successfully"
 
+# Build Dashboard Docker image
+log "Building dashboard Docker image..."
+docker build -t abdul-dashboard:latest \
+    -f "$DEPLOYMENT_DIR/dashboard/docker/Dockerfile" \
+    "$DEPLOYMENT_DIR/dashboard" || error "Failed to build dashboard image"
+log "Dashboard image built successfully"
+
 # Start new containers
 log "Starting containers with ${DOCKER_COMPOSE_CMD}..."
 ${DOCKER_COMPOSE_CMD} -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" up -d || error "Failed to start containers"
@@ -179,6 +186,7 @@ sleep 10
 log "Verifying container status..."
 BACKEND_STATUS=$(docker ps --filter "name=abdul-backend" --format "{{.Status}}" 2>/dev/null || echo "")
 NAMEK_STATUS=$(docker ps --filter "name=abdul-namek" --format "{{.Status}}" 2>/dev/null || echo "")
+DASHBOARD_STATUS=$(docker ps --filter "name=abdul-dashboard" --format "{{.Status}}" 2>/dev/null || echo "")
 
 if [ -z "$BACKEND_STATUS" ]; then
     error "Backend container is not running"
@@ -188,8 +196,13 @@ if [ -z "$NAMEK_STATUS" ]; then
     error "Namek container is not running"
 fi
 
+if [ -z "$DASHBOARD_STATUS" ]; then
+    error "Dashboard container is not running"
+fi
+
 log "Backend container status: $BACKEND_STATUS"
 log "Namek container status: $NAMEK_STATUS"
+log "Dashboard container status: $DASHBOARD_STATUS"
 
 # Verify services are accessible
 log "Verifying service connectivity..."
@@ -203,6 +216,12 @@ if curl -f http://localhost:3000/ > /dev/null 2>&1; then
     log "Namek service is responding on port 3000"
 else
     warning "Namek health check failed, but container is running"
+fi
+
+if curl -f http://localhost:8080/ > /dev/null 2>&1; then
+    log "Dashboard service is responding on port 8080"
+else
+    warning "Dashboard health check failed, but container is running"
 fi
 
 # Cleanup old images (keep last 2 versions)
@@ -219,6 +238,7 @@ log "━━━━━━━━━━━━━━━━━━━━━━━━━
 log "Commit: ${CURRENT_COMMIT}"
 log "Backend: http://localhost:5000"
 log "Namek: http://localhost:3000"
+log "Dashboard: http://localhost:8080"
 log "Deployment logs: $LOG_FILE"
 log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
