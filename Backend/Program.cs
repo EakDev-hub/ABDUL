@@ -43,6 +43,9 @@ builder.Services.AddHttpClient("OpenRouter", client =>
 // Register custom services
 builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
 builder.Services.AddScoped<IHackathonService, HackathonService>();
+builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
+builder.Services.AddScoped<IQnaService, QnaService>();
+builder.Services.AddScoped<IScoreService, ScoreService>();
 builder.Services.AddScoped<ITeamApiClient, TeamApiClient>();
 builder.Services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 
