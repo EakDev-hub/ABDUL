@@ -510,7 +510,7 @@ onUnmounted(() => {
   bottom: 0;
   overflow: hidden;
   background: #000205;
-  font-family: 'Rajdhani', 'Chakra Petch', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   color: #00f3ff;
 }
 
@@ -652,7 +652,7 @@ onUnmounted(() => {
 }
 
 .main-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 2.5rem;
   font-weight: 900;
   letter-spacing: 3px;
@@ -679,7 +679,7 @@ onUnmounted(() => {
 }
 
 .subtitle {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 0.9rem;
   color: #aaddff;
   display: flex;
@@ -692,7 +692,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
   color: #00f3ff;
   font-size: 0.85rem;
@@ -849,7 +849,7 @@ onUnmounted(() => {
   color: #ff003c;
   font-size: 0.75rem;
   margin-top: 0.5rem;
-  font-family: 'Share Tech Mono', 'Chakra Petch', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
   letter-spacing: 1px;
   text-shadow: 0 0 8px rgba(255, 0, 60, 0.8);
   display: flex;
@@ -910,7 +910,7 @@ onUnmounted(() => {
 }
 
 .panel-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 0.85rem;
   color: #00f3ff;
   letter-spacing: 1.5px;
@@ -953,7 +953,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   color: #aaddff;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 600;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
@@ -999,7 +999,7 @@ onUnmounted(() => {
   border: none;
   border-bottom: 2px solid rgba(0, 243, 255, 0.2);
   color: #fff;
-  font-family: 'Chakra Petch', 'Share Tech Mono', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 1.1rem;
   transition: all 0.3s ease;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
@@ -1056,7 +1056,7 @@ onUnmounted(() => {
   background: transparent;
   border: 2px solid #00f3ff;
   color: #00f3ff;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
   cursor: pointer;
@@ -1192,7 +1192,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 0.85rem;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
@@ -1265,7 +1265,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   color: #00f3ff;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
 }
 
 .terminal-icon {
@@ -1292,11 +1292,12 @@ onUnmounted(() => {
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
 }
 
 .terminal-text {
   color: #00f3ff;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 1.1rem;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -1489,7 +1490,7 @@ onUnmounted(() => {
 }
 
 .progress-text {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 2.5rem;
   font-weight: 900;
   color: #00f3ff;
@@ -1498,7 +1499,7 @@ onUnmounted(() => {
 }
 
 .status-text {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 0.7rem;
   color: #aaddff;
   letter-spacing: 1px;
@@ -1551,7 +1552,7 @@ onUnmounted(() => {
 }
 
 .stat-label {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 0.65rem;
   color: #aaddff;
   letter-spacing: 1px;
