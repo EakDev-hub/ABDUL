@@ -318,29 +318,12 @@ async function handleSubmit() {
 
     hackathonStore.setError(errorMessage, statusCode, errorDetails)
 
-    // Calculate remaining time to meet minimum delay
-    const elapsedTime = Date.now() - startTime
-    const remainingTime = Math.max(0, minDelay - elapsedTime)
-
-    // Wait for remaining time if needed
-    if (remainingTime > 0) {
-      await new Promise(resolve => setTimeout(resolve, remainingTime))
-    }
-
-    // Stop animation gracefully
-    stopAnimation()
-
-    // Wait for animation to complete gracefully
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    // Hide loading
+    // ถ้า error แสดงทันทีเลย ไม่ต้องรอเวลาและไม่ต้อง stop animation gracefully
+    // Hide loading immediately without stopping animation (just hide it)
     showTerminal.value = false
     hackathonStore.setLoading(false)
 
-    // Navigate to results page to show error
-    if (hackathonStore.errorState?.hasError) {
-      router.push('/hackathon/result')
-    }
+    // แสดง error ในหน้า submit เลย ไม่ต้อง navigate ไปหน้า result
   }
 }
 
