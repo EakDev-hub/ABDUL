@@ -29,6 +29,7 @@ const routes: Array<RouteRecordRaw> = [
         uuid: 'mock-uuid-12345-67890-abcdef',
         passKeyType: 'develop',
         maxDurationInSecs: 300,
+        timeUsedInSeconds: 245,
         totalQuestion: 10,
         maximumScore: 10,
         answeredQuestion: 8,
