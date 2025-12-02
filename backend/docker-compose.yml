@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: abdul-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    restart: unless-stopped

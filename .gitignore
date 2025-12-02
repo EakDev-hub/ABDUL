@@ -13,6 +13,7 @@ dist
 dist-ssr
 *.local
 
+<<<<<<< HEAD
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -92,3 +93,11 @@ out
 .dynamodb/
 .tern-port
 .vscode-test
+=======
+**/report-cucumber-json-by-test-suite/*
+**/reports/*
+package-lock.json
+
+# Environment variables
+.env
+>>>>>>> origin/main
