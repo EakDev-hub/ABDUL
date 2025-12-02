@@ -78,12 +78,6 @@ const fetchAnnouncements = async () => {
   }
 }
 
-// Format time from ISO string
-const formatTime = (isoString: string) => {
-  const date = new Date(isoString)
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-}
-
 // Fetch QnA from API
 const fetchQna = async () => {
   try {
