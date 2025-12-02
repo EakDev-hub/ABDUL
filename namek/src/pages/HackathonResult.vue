@@ -28,14 +28,9 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <!-- TURBO Title -->
-      <div v-if="result" class="turbo-title-container">
-        <h1 class="turbo-title">
-          <span class="turbo-text" data-text="TURBO">
-            TURBO
-            <span class="grunge-overlay"></span>
-          </span>
-        </h1>
+      <!-- TURBO Logo -->
+      <div v-if="result" class="turbo-logo-container">
+        <img src="/image-turbo.png" alt="TURBO Hackathon" class="turbo-logo" />
       </div>
 
       <!-- Header Section -->
@@ -83,21 +78,21 @@
 
           <div class="summary-grid">
             <div class="stat-box">
-              <p class="stat-label">จำนวนข้อที่ทำได้</p>
+              <p class="stat-label">Questions Answered</p>
               <p class="stat-value stat-answered">
-                {{ result.answeredQuestion }} / {{ result.totalQuestion }} <span class="stat-unit">ข้อ</span>
+                {{ result.answeredQuestion }} / {{ result.totalQuestion }} <span class="stat-unit">Questions</span>
               </p>
             </div>
             <div class="stat-box">
-              <p class="stat-label">คะแนนที่ได้</p>
+              <p class="stat-label">Score Obtained</p>
               <p class="stat-value stat-highlight">
                 {{ result.score.toFixed(2) }} / {{ result.maximumScore }}
               </p>
             </div>
             <div class="stat-box">
-              <p class="stat-label">Max Duration</p>
+              <p class="stat-label">Duration Used (Secs)</p>
               <p class="stat-value stat-duration">
-                {{ result.maxDurationInSecs }} <span class="stat-unit">วินาที</span>
+                {{ result.timeUsedInSeconds.toFixed(2) }} / {{ result.maxDurationInSecs }}
               </p>
             </div>
           </div>
@@ -783,12 +778,15 @@ function goBack() {
   gap: 1rem;
 }
 
-/* TURBO Title */
-.turbo-title-container {
+/* TURBO Logo */
+.turbo-logo-container {
   position: relative;
   flex-shrink: 0;
   margin-bottom: 0;
   animation: turboSlideDown 1s ease-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 @keyframes turboSlideDown {
@@ -802,71 +800,26 @@ function goBack() {
   }
 }
 
-.turbo-title {
-  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  font-size: 4rem;
-  font-weight: 900;
-  letter-spacing: 15px;
-  margin: 0;
-  text-transform: uppercase;
-  position: relative;
-  display: inline-block;
-}
-
-.turbo-text {
-  position: relative;
-  display: inline-block;
-  color: #ffffff;
-}
-
-.grunge-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+.turbo-logo {
+  max-width: 400px;
   width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at 5% 10%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 8% 18%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 15% 35%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 20% 50%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 25% 65%, rgba(0,0,0,0.8) 2px, transparent 2px),
-    radial-gradient(circle at 30% 80%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 40% 30%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 50% 60%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 60% 25%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 70% 55%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 80% 85%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 90% 30%, rgba(0,0,0,0.9) 1px, transparent 1px);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  mix-blend-mode: multiply;
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.4))
+          drop-shadow(0 0 40px rgba(107, 140, 255, 0.3));
+  animation: logoFloat 3s ease-in-out infinite;
 }
 
-.turbo-text::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 100%;
-  height: 100%;
-  color: rgba(250, 71, 134, 0.6);
-  z-index: -1;
-  filter: blur(2px);
-}
-
-.turbo-text::after {
-  content: attr(data-text);
-  position: absolute;
-  left: -3px;
-  top: -3px;
-  width: 100%;
-  height: 100%;
-  color: rgba(107, 140, 255, 0.6);
-  z-index: -2;
-  filter: blur(2px);
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.4))
+            drop-shadow(0 0 40px rgba(107, 140, 255, 0.3));
+  }
+  50% {
+    transform: translateY(-10px);
+    filter: drop-shadow(0 0 30px rgba(250, 71, 134, 0.6))
+            drop-shadow(0 0 60px rgba(107, 140, 255, 0.5));
+  }
 }
 
 /* Header Section */
@@ -1496,9 +1449,8 @@ function goBack() {
     gap: 0.5rem;
   }
 
-  .turbo-title {
-    font-size: 2rem;
-    letter-spacing: 8px;
+  .turbo-logo {
+    max-width: 250px;
   }
 
   .main-title {

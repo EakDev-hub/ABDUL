@@ -6,6 +6,7 @@ const mockResponse: SubmitResponse = {
   uuid: 'xxxxxyyyyyzzzzz',
   passKeyType: 'develop',
   maxDurationInSecs: 20,
+  timeUsedInSeconds: 18,
   totalQuestion: 20,
   maximumScore: 20,
   answeredQuestion: 9,
