@@ -220,27 +220,53 @@ public class HackathonService : IHackathonService
 
     private async Task EvaluateAnswersWithAiAsync(List<QuestionResult> results, AiEvaluationInstruction aiInstruction)
     {
-        _logger.LogInformation("Starting AI evaluation for {Count} answers (NO TIME LIMIT)", results.Count);
+        _logger.LogInformation("Starting AI evaluation for {Count} answers with max 10 concurrent calls (NO TIME LIMIT)", results.Count);
 
         var evaluationStopwatch = Stopwatch.StartNew();
+        var completedCount = 0;
+        var lockObject = new object();
 
-        foreach (var result in results)
+        // Use SemaphoreSlim to throttle to max 10 concurrent API calls
+        using var semaphore = new SemaphoreSlim(10, 10);
+
+        var tasks = results.Select(async result =>
         {
-            var score = await _openRouterClient.EvaluateAnswerAsync(
-                aiInstruction.Instruction,
-                aiInstruction.Model,
-                result.Question,
-                result.ExpectedAnswer,
-                result.ActualAnswer ?? ""
-            );
+            await semaphore.WaitAsync(); // Wait for available slot
+            try
+            {
+                _logger.LogInformation("Evaluating question {No}...", result.No);
+                
+                var score = await _openRouterClient.EvaluateAnswerAsync(
+                    aiInstruction.Instruction,
+                    aiInstruction.Model,
+                    result.Question,
+                    result.ExpectedAnswer,
+                    result.ActualAnswer ?? ""
+                );
 
-            result.Score = score;
-            
-            _logger.LogInformation("Question {No} evaluated: score = {Score}", result.No, score);
-        }
+                result.Score = score;
+                
+                int completed;
+                lock (lockObject)
+                {
+                    completedCount++;
+                    completed = completedCount;
+                }
+                
+                _logger.LogInformation("Question {No} evaluated: score = {Score} ({Completed}/{Total})",
+                    result.No, score, completed, results.Count);
+            }
+            finally
+            {
+                semaphore.Release(); // Free up slot for next task
+            }
+        }).ToList();
+
+        await Task.WhenAll(tasks);
 
         evaluationStopwatch.Stop();
-        _logger.LogInformation("AI evaluation completed in {Elapsed:F2}s", evaluationStopwatch.Elapsed.TotalSeconds);
+        _logger.LogInformation("AI evaluation completed in {Elapsed:F2}s for {Count} questions",
+            evaluationStopwatch.Elapsed.TotalSeconds, results.Count);
     }
 
     private async Task<string> SaveResultsAsync(TeamPassKey teamPassKey, int totalQuestions, List<QuestionResult> results)
