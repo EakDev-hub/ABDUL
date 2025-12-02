@@ -1,8 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useAnnouncementStore } from '@/store/announcement.store'
+import { announcementService } from '@/services/announcement.service'
+import { useQnaStore } from '@/store/qna.store'
+import { qnaService } from '@/services/qna.service'
+import { useScoreStore } from '@/store/score.store'
+import { scoreService } from '@/services/score.service'
 
 // Hackathon finish time - Set your actual finish time here
 const hackathonFinishTime = new Date('2025-11-19T12:00:00').getTime()
+
+// Announcement store
+const announcementStore = useAnnouncementStore()
+
+// QnA store
+const qnaStore = useQnaStore()
+
+// Score store
+const scoreStore = useScoreStore()
 
 // Current time
 const currentTime = ref(new Date())
@@ -15,28 +30,76 @@ const timeRemaining = ref({
   isFinished: false
 })
 
-// Scoreboard data
-const teams = ref([
-  { team: 'Team Alpha', duration: '02:45:30', score: 850 },
-  { team: 'Team Beta', duration: '03:12:15', score: 920 },
-  { team: 'Team Gamma', duration: '02:58:42', score: 785 },
-  { team: 'Team Delta', duration: '03:05:20', score: 890 },
-  { team: 'Team Epsilon', duration: '02:30:55', score: 950 }
-])
+// Fetch scores from API
+const fetchScores = async () => {
+  try {
+    scoreStore.setLoading(true)
+    const response = await scoreService.getScores()
+    
+    if (response.success && response.data) {
+      scoreStore.setScores(response.data)
+    }
+  } catch (error: any) {
+    console.error('Failed to fetch scores:', error)
+    scoreStore.setError(error.message || 'Failed to fetch scores')
+  } finally {
+    scoreStore.setLoading(false)
+  }
+}
 
-// Announcements
-const announcements = ref([
-  { id: 1, time: '14:00', message: 'แฮกกาธอนเริ่มต้นแล้ว! ขอให้ทุกทีมโชคดี!' },
-  { id: 2, time: '15:30', message: 'แจ้งเตือน: พักรับประทานอาหารกลางวัน 16:00-17:00 น.' },
-  { id: 3, time: '16:45', message: 'เอกสาร API ได้รับการอัปเดตแล้ว กรุณาตรวจสอบอีเมล!' }
-])
+// Format duration from seconds to HH:MM:SS
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = Math.floor(seconds % 60)
+  
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
 
-// Q&A items
-const qaItems = ref([
-  { id: 1, question: 'Can we use external APIs?', answer: 'Yes, any public API is allowed.' },
-  { id: 2, question: 'What is the submission deadline?', answer: 'Submissions close at 18:00 today.' },
-  { id: 3, question: 'Is there a prize for best UI/UX?', answer: 'Yes! Special category prizes will be announced later.' }
-])
+// Sorted scores by totalScore descending
+const sortedScores = computed(() => {
+  return [...scoreStore.scores].sort((a, b) => b.totalScore - a.totalScore)
+})
+
+// Fetch announcements from API
+const fetchAnnouncements = async () => {
+  try {
+    announcementStore.setLoading(true)
+    const response = await announcementService.getAnnouncements()
+    
+    if (response.success && response.data) {
+      announcementStore.setAnnouncements(response.data)
+    }
+  } catch (error: any) {
+    console.error('Failed to fetch announcements:', error)
+    announcementStore.setError(error.message || 'Failed to fetch announcements')
+  } finally {
+    announcementStore.setLoading(false)
+  }
+}
+
+// Format time from ISO string
+const formatTime = (isoString: string) => {
+  const date = new Date(isoString)
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+// Fetch QnA from API
+const fetchQna = async () => {
+  try {
+    qnaStore.setLoading(true)
+    const response = await qnaService.getQna()
+    
+    if (response.success && response.data) {
+      qnaStore.setQnaItems(response.data)
+    }
+  } catch (error: any) {
+    console.error('Failed to fetch Q&A:', error)
+    qnaStore.setError(error.message || 'Failed to fetch Q&A')
+  } finally {
+    qnaStore.setLoading(false)
+  }
+}
 
 // QR Code URL for Q&A
 const qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://forms.gle/yourQAform'
@@ -89,15 +152,45 @@ const formattedTimer = computed(() => {
 })
 
 let intervalId: number
+let announcementIntervalId: number
+let qnaIntervalId: number
+let scoreIntervalId: number
 
 onMounted(() => {
   updateTime()
   intervalId = setInterval(updateTime, 1000)
+  
+  // Fetch announcements immediately
+  fetchAnnouncements()
+  
+  // Poll announcements every 5 seconds
+  announcementIntervalId = setInterval(fetchAnnouncements, 5000)
+  
+  // Fetch Q&A immediately
+  fetchQna()
+  
+  // Poll Q&A every 5 seconds
+  qnaIntervalId = setInterval(fetchQna, 5000)
+  
+  // Fetch scores immediately
+  fetchScores()
+  
+  // Poll scores every 5 seconds
+  scoreIntervalId = setInterval(fetchScores, 5000)
 })
 
 onUnmounted(() => {
   if (intervalId) {
     clearInterval(intervalId)
+  }
+  if (announcementIntervalId) {
+    clearInterval(announcementIntervalId)
+  }
+  if (qnaIntervalId) {
+    clearInterval(qnaIntervalId)
+  }
+  if (scoreIntervalId) {
+    clearInterval(scoreIntervalId)
   }
 })
 </script>
@@ -119,7 +212,13 @@ onUnmounted(() => {
         <!-- Scoreboard Section -->
         <div class="scoreboard-section">
           <h2>📊 Scoreboard</h2>
-          <div class="table-container">
+          <div v-if="scoreStore.isLoading && scoreStore.scores.length === 0" class="table-container">
+            <div class="loading-message">Loading scoreboard...</div>
+          </div>
+          <div v-else-if="scoreStore.scores.length === 0 && !scoreStore.isLoading" class="table-container">
+            <div class="loading-message">No teams have submitted yet.</div>
+          </div>
+          <div v-else class="table-container">
             <table class="scoreboard-table">
               <thead>
                 <tr>
@@ -129,15 +228,15 @@ onUnmounted(() => {
                   <th>Total Score</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="(team, index) in teams.sort((a, b) => b.score - a.score)" :key="team.team" 
+              <transition-group name="score-fade" tag="tbody">
+                <tr v-for="(score, index) in sortedScores" :key="score.team"
                     :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
                   <td class="rank">{{ index + 1 }}</td>
-                  <td class="team-name">{{ team.team }}</td>
-                  <td>{{ team.duration }}</td>
-                  <td class="score">{{ team.score }}</td>
+                  <td class="team-name">{{ score.team }}</td>
+                  <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
+                  <td class="score">{{ score.totalScore.toFixed(1) }}</td>
                 </tr>
-              </tbody>
+              </transition-group>
             </table>
           </div>
         </div>
@@ -155,22 +254,46 @@ onUnmounted(() => {
         <!-- Announcements Section -->
         <div class="announcements-section">
           <h2>📢 Announcements</h2>
-          <div class="announcements-list">
-            <div v-for="announcement in announcements" :key="announcement.id" class="announcement-item">
-              <span class="announcement-time">{{ announcement.time }}</span>
-              <p class="announcement-message">{{ announcement.message }}</p>
+          <div v-if="announcementStore.isLoading && announcementStore.announcements.length === 0" class="announcements-list">
+            <div class="announcement-item">
+              <p class="announcement-message">Loading announcements...</p>
             </div>
+          </div>
+          <div v-else-if="announcementStore.announcements.length === 0 && !announcementStore.isLoading" class="announcements-list">
+            <div class="announcement-item">
+              <p class="announcement-message">No announcements yet.</p>
+            </div>
+          </div>
+          <div v-else class="announcements-list">
+            <transition-group name="announcement-fade" tag="div">
+              <div v-for="announcement in announcementStore.announcements" :key="announcement.id" class="announcement-item">
+                <span class="announcement-time">{{ formatTime(announcement.postedAt) }}</span>
+                <p class="announcement-message">{{ announcement.text }}</p>
+              </div>
+            </transition-group>
           </div>
         </div>
 
         <!-- Q&A Section -->
         <div class="qa-section">
           <h2>❓ Q&A</h2>
-          <div class="qa-list">
-            <div v-for="qa in qaItems" :key="qa.id" class="qa-item">
-              <p class="question"><strong>Q:</strong> {{ qa.question }}</p>
-              <p class="answer"><strong>A:</strong> {{ qa.answer }}</p>
+          <div v-if="qnaStore.isLoading && qnaStore.qnaItems.length === 0" class="qa-list">
+            <div class="qa-item">
+              <p class="question">Loading Q&A...</p>
             </div>
+          </div>
+          <div v-else-if="qnaStore.qnaItems.length === 0 && !qnaStore.isLoading" class="qa-list">
+            <div class="qa-item">
+              <p class="question">No Q&A items yet.</p>
+            </div>
+          </div>
+          <div v-else class="qa-list">
+            <transition-group name="qa-fade" tag="div">
+              <div v-for="qa in qnaStore.qnaItems" :key="qa.id" class="qa-item">
+                <p class="question"><strong>Q:</strong> {{ qa.question }}</p>
+                <p class="answer"><strong>A:</strong> {{ qa.answer }}</p>
+              </div>
+            </transition-group>
           </div>
           <div class="qr-sponsor-wrapper">
             <div class="qr-container">
@@ -625,6 +748,74 @@ onUnmounted(() => {
 ::-webkit-scrollbar-thumb:hover {
   background: #ff5a96;
 }
+
+/* Announcement Transitions */
+.announcement-fade-enter-active,
+.announcement-fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.announcement-fade-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.announcement-fade-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.announcement-fade-move {
+  transition: transform 0.5s ease;
+}
+
+/* Q&A Transitions */
+.qa-fade-enter-active,
+.qa-fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.qa-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.qa-fade-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.qa-fade-move {
+  transition: transform 0.5s ease;
+}
+/* Score Transitions */
+.score-fade-enter-active,
+.score-fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.score-fade-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.score-fade-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.score-fade-move {
+  transition: transform 0.5s ease;
+}
+
+/* Loading Message */
+.loading-message {
+  color: #a0aec0;
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+}
+
 
 /* Responsive Design */
 @media (max-width: 1200px) {
