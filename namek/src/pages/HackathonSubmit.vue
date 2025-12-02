@@ -12,93 +12,16 @@
 
     <!-- Loading Modal - Random between Terminal and Sci-Fi -->
     <transition name="terminal-fade">
-      <div v-if="showTerminal" class="terminal-overlay">
-        <!-- Terminal Mode -->
-        <div v-if="loadingMode === 'terminal'" class="terminal-frame">
-          <div class="terminal-header-bar">
-            <div class="terminal-title-box">
-              <svg class="terminal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 17l6-6-6-6M12 19h8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span class="terminal-title">{{ terminalTitle }}</span>
-            </div>
-            <div class="terminal-controls">
-              <div class="control-dot red"></div>
-              <div class="control-dot yellow"></div>
-              <div class="control-dot green"></div>
-            </div>
-          </div>
-          <div ref="terminalContentRef" class="terminal-content">
-            <pre ref="terminalTextRef" class="terminal-text">{{ displayedText }}<span class="cursor-blink">█</span></pre>
-          </div>
-          <div class="scanline"></div>
-          <div class="holo-glint"></div>
-        </div>
-
-        <!-- Sci-Fi AI HUD Mode -->
-        <div v-else class="scifi-hud">
-          <div class="hud-background"></div>
-
-          <!-- Main Circle -->
-          <div class="hud-main-circle">
-            <!-- Rotating Rings -->
-            <div class="hud-ring ring-1"></div>
-            <div class="hud-ring ring-2"></div>
-            <div class="hud-ring ring-3"></div>
-
-            <!-- Progress Arc -->
-            <svg class="progress-arc" viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="85" class="arc-bg"/>
-              <circle cx="100" cy="100" r="85" class="arc-progress" :style="{ strokeDashoffset: arcProgress }"/>
-            </svg>
-
-            <!-- Center Display -->
-            <div class="hud-center">
-              <div class="center-frame">
-                <div class="frame-corner tl"></div>
-                <div class="frame-corner tr"></div>
-                <div class="frame-corner bl"></div>
-                <div class="frame-corner br"></div>
-                <div class="status-text">{{ statusText }}</div>
-              </div>
-            </div>
-
-            <!-- Side Indicators -->
-            <div class="side-indicator left">
-              <div v-for="i in 8" :key="'l'+i" class="indicator-bar" :class="{ active: i <= Math.floor(progress / 12.5) }"></div>
-            </div>
-            <div class="side-indicator right">
-              <div v-for="i in 8" :key="'r'+i" class="indicator-bar" :class="{ active: i <= Math.floor(progress / 12.5) }"></div>
-            </div>
-
-            <!-- Bottom Stats -->
-            <div class="hud-stats">
-              <div class="stat-item">
-                <div class="stat-label">NEURAL NET</div>
-                <div class="stat-bars">
-                  <div v-for="i in 6" :key="'n'+i" class="stat-bar" :class="{ active: i <= 6 }"></div>
-                </div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">AI CORE</div>
-                <div class="stat-bars">
-                  <div v-for="i in 6" :key="'a'+i" class="stat-bar" :class="{ active: i <= 6 }"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Orbiting Dots -->
-            <div class="orbit-dot dot-1"></div>
-            <div class="orbit-dot dot-2"></div>
-          </div>
-
-          <!-- Corner Decorations -->
-          <div class="corner-deco top-left"></div>
-          <div class="corner-deco top-right"></div>
-          <div class="corner-deco bottom-left"></div>
-          <div class="corner-deco bottom-right"></div>
-        </div>
-      </div>
+      <TerminalLoading
+        v-if="showTerminal && loadingMode === 'terminal'"
+        :is-active="showTerminal"
+        :stop-requested="animationStopRequested"
+      />
+      <SciFiLoading
+        v-else-if="showTerminal && loadingMode === 'scifi'"
+        :is-active="showTerminal"
+        :stop-requested="animationStopRequested"
+      />
     </transition>
 
     <!-- Main Content -->
@@ -248,21 +171,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHackathonStore } from '@/store/hackathon.store'
 import { hackathonService } from '@/services/hackathon.service'
 import type { SubmitRequest } from '@/types/hackathon'
+import TerminalLoading from '@/components/TerminalLoading.vue'
+import SciFiLoading from '@/components/SciFiLoading.vue'
 
 const router = useRouter()
 const hackathonStore = useHackathonStore()
 
 // Loading mode - randomly choose between 'terminal' and 'scifi'
 const loadingMode = ref<'terminal' | 'scifi'>('terminal')
-const progress = ref(0)
-const statusText = ref('INITIALIZING...')
-const arcProgress = ref(534) // Full circle circumference ≈ 534
-let progressInterval: number | null = null
 
 // Particle animation
 function getParticleStyle(index: number) {
@@ -292,136 +213,10 @@ const errors = ref({
 })
 
 const showTerminal = ref(false)
-const displayedText = ref('')
-const terminalTitle = ref('INITIALIZING SYSTEM...')
-const terminalContentRef = ref<HTMLElement | null>(null)
-const terminalTextRef = ref<HTMLElement | null>(null)
+const animationStopRequested = ref(false)
 
 const isLoading = computed(() => hackathonStore.isLoading)
 const error = computed(() => hackathonStore.error)
-
-// Hacker typer code samples
-const codeSnippets = [
-  `> CONNECTING TO NEURAL NET...\n> ESTABLISHING SECURE LINK...\n> HANDSHAKE COMPLETE.\n\n`,
-  `> LOADING MODULES:\n  [+] TENSORFLOW.JS\n  [+] NATURAL.JS\n  [+] SENTIMENT_ANALYZER\n  [+] PATTERN_RECOGNITION\n\n`,
-  `> ANALYZING INPUT STREAM...\n> DECODING PACKETS...\n> VERIFYING INTEGRITY...\n\n`,
-  `> RUNNING HEURISTIC SCAN...\n  - VECTORIZING DATA...\n  - CALCULATING LOSS FUNCTION...\n  - OPTIMIZING WEIGHTS...\n\n`,
-  `> GENERATING PREDICTIONS...\n  CONFIDENCE: 98.4%\n  ACCURACY: 99.1%\n  LATENCY: 12ms\n\n`,
-  `> COMPILING RESULTS...\n> ENCRYPTING PAYLOAD...\n> TRANSMITTING TO CORE...\n\n`
-]
-
-const isAnimationRunning = ref(false)
-const animationStopRequested = ref(false)
-
-async function typeText(text: string, speed: number = 15): Promise<void> {
-  for (let i = 0; i < text.length; i++) {
-    if (!isAnimationRunning.value) break
-    displayedText.value += text[i]
-    await new Promise(resolve => setTimeout(resolve, speed))
-    // Auto-scroll to bottom
-    if (terminalContentRef.value) {
-      terminalContentRef.value.scrollTop = terminalContentRef.value.scrollHeight
-    }
-  }
-}
-
-async function runTerminalAnimation() {
-  // Don't clear text - keep it continuous
-  isAnimationRunning.value = true
-  animationStopRequested.value = false
-
-  // Loop animation until stop is requested
-  while (isAnimationRunning.value && !animationStopRequested.value) {
-    // Type random code snippets
-    for (const snippet of codeSnippets) {
-      if (!isAnimationRunning.value || animationStopRequested.value) break
-      await typeText(snippet, 8)
-    }
-
-    // If we should stop, show completion messages
-    if (animationStopRequested.value) {
-      terminalTitle.value = 'ANALYSIS COMPLETE'
-      await typeText('\n[✓] SYSTEM DIAGNOSTICS: GREEN\n', 30)
-      await typeText('[✓] DATA INTEGRITY: VERIFIED\n', 30)
-      await typeText('[✓] REPORT GENERATED\n\n', 30)
-      await typeText('>>> REDIRECTING TO DASHBOARD...', 40)
-      await new Promise(resolve => setTimeout(resolve, 800))
-      break
-    }
-
-    // Continue adding more text instead of clearing
-    if (isAnimationRunning.value && !animationStopRequested.value) {
-      await typeText('\n', 10)
-      // No clearing - just continue
-    }
-  }
-
-  isAnimationRunning.value = false
-}
-
-async function runSciFiAnimation() {
-  progress.value = 0
-  isAnimationRunning.value = true
-  animationStopRequested.value = false
-
-  const statuses = [
-    'INITIALIZING...',
-    'CONNECTING TO AI CORE...',
-    'ANALYZING DATA...',
-    'PROCESSING NEURAL NET...',
-    'OPTIMIZING ALGORITHMS...',
-    'FINALIZING RESULTS...',
-    'COMPLETE'
-  ]
-
-  let statusIndex = 0
-  statusText.value = statuses[0]
-
-  // Progress animation - loop until stop is requested
-  progressInterval = window.setInterval(() => {
-    if (!isAnimationRunning.value) {
-      if (progressInterval) {
-        clearInterval(progressInterval)
-        progressInterval = null
-      }
-      return
-    }
-
-    // If stop requested and we're at 100%, complete
-    if (animationStopRequested.value && progress.value >= 100) {
-      progress.value = 100
-      arcProgress.value = 0
-      statusText.value = 'COMPLETE'
-      if (progressInterval) {
-        clearInterval(progressInterval)
-        progressInterval = null
-      }
-      isAnimationRunning.value = false
-      return
-    }
-
-    // Normal progress
-    if (progress.value < 100) {
-      progress.value += Math.random() * 2 + 0.5
-      if (progress.value > 100) progress.value = 100
-
-      // Update arc progress (534 is full circle, 0 is complete)
-      arcProgress.value = 534 - (534 * progress.value / 100)
-
-      // Update status text
-      const newIndex = Math.floor(progress.value / (100 / statuses.length))
-      if (newIndex !== statusIndex && newIndex < statuses.length) {
-        statusIndex = newIndex
-        statusText.value = statuses[statusIndex]
-      }
-    } else if (!animationStopRequested.value) {
-      // Loop back to beginning if not stopping
-      progress.value = 0
-      statusIndex = 0
-      statusText.value = statuses[0]
-    }
-  }, 100)
-}
 
 function stopAnimation() {
   animationStopRequested.value = true
@@ -476,13 +271,6 @@ async function handleSubmit() {
   // Random minimum delay between 5-10 seconds (5000-10000 ms)
   const minDelay = Math.floor(Math.random() * 5000) + 5000
   const startTime = Date.now()
-
-  // Start animation based on mode (runs in background)
-  if (loadingMode.value === 'terminal') {
-    runTerminalAnimation() // Start terminal animation loop
-  } else {
-    runSciFiAnimation() // Start sci-fi animation loop
-  }
 
   // API call (runs in parallel with animation)
   try {
@@ -556,11 +344,6 @@ async function handleSubmit() {
   }
 }
 
-onUnmounted(() => {
-  if (progressInterval) {
-    clearInterval(progressInterval)
-  }
-})
 </script>
 
 <style scoped>
@@ -1296,118 +1079,7 @@ onUnmounted(() => {
   75% { transform: translateX(2px); }
 }
 
-/* Terminal Modal */
-.terminal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.9);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(5px);
-}
-
-.terminal-frame {
-  width: 90%;
-  max-width: 1000px;
-  height: 70vh;
-  background: rgba(0, 10, 20, 0.95);
-  border: 1px solid #00f3ff;
-  box-shadow: 0 0 50px rgba(0, 243, 255, 0.3);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-.terminal-header-bar {
-  background: rgba(0, 30, 50, 0.5);
-  padding: 0.8rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #00f3ff;
-}
-
-.terminal-title-box {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #00f3ff;
-  font-family: 'Orbitron', 'Chakra Petch', monospace;
-}
-
-.terminal-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.terminal-controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.control-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.red { background: #ff5f56; }
-.yellow { background: #ffbd2e; }
-.green { background: #27c93f; }
-
-.terminal-content {
-  flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
-  font-family: 'Orbitron', 'Chakra Petch', monospace;
-}
-
-.terminal-text {
-  color: #00f3ff;
-  font-family: 'Orbitron', 'Chakra Petch', monospace;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
-}
-
-.scanline {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0, 243, 255, 0.05) 50%,
-    transparent 100%
-  );
-  animation: scan 6s linear infinite;
-  pointer-events: none;
-}
-
-.holo-glint {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05), transparent 70%);
-  pointer-events: none;
-}
-
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
+/* Terminal Fade Animation */
 .terminal-fade-enter-active, .terminal-fade-leave-active {
   transition: opacity 0.3s, transform 0.3s;
 }
@@ -1415,314 +1087,6 @@ onUnmounted(() => {
 .terminal-fade-enter-from, .terminal-fade-leave-to {
   opacity: 0;
   transform: scale(0.95);
-}
-
-/* Sci-Fi HUD Loading */
-.scifi-hud {
-  width: 600px;
-  height: 600px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hud-background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(0, 50, 100, 0.3) 0%, transparent 70%);
-  animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-.hud-main-circle {
-  width: 400px;
-  height: 400px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Rotating Rings */
-.hud-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 243, 255, 0.3);
-}
-
-.ring-1 {
-  width: 100%;
-  height: 100%;
-  animation: rotate 10s linear infinite;
-  border-style: dashed;
-}
-
-.ring-2 {
-  width: 85%;
-  height: 85%;
-  animation: rotate 15s linear infinite reverse;
-}
-
-.ring-3 {
-  width: 70%;
-  height: 70%;
-  animation: rotate 20s linear infinite;
-  border-color: rgba(0, 243, 255, 0.2);
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Progress Arc */
-.progress-arc {
-  position: absolute;
-  width: 90%;
-  height: 90%;
-  transform: rotate(-90deg);
-}
-
-.arc-bg {
-  fill: none;
-  stroke: rgba(0, 243, 255, 0.1);
-  stroke-width: 3;
-}
-
-.arc-progress {
-  fill: none;
-  stroke: #00f3ff;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 534;
-  filter: drop-shadow(0 0 10px #00f3ff);
-  transition: stroke-dashoffset 0.3s ease;
-}
-
-/* Center Display */
-.hud-center {
-  position: relative;
-  z-index: 10;
-}
-
-.center-frame {
-  width: 180px;
-  height: 120px;
-  background: rgba(0, 10, 30, 0.9);
-  border: 2px solid #00f3ff;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.3), inset 0 0 30px rgba(0, 243, 255, 0.1);
-}
-
-.frame-corner {
-  position: absolute;
-  width: 15px;
-  height: 15px;
-  border: 2px solid #ffff00;
-  box-shadow: 0 0 10px #ffff00;
-}
-
-.frame-corner.tl {
-  top: -2px;
-  left: -2px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.frame-corner.tr {
-  top: -2px;
-  right: -2px;
-  border-left: none;
-  border-bottom: none;
-}
-
-.frame-corner.bl {
-  bottom: -2px;
-  left: -2px;
-  border-right: none;
-  border-top: none;
-}
-
-.frame-corner.br {
-  bottom: -2px;
-  right: -2px;
-  border-left: none;
-  border-top: none;
-}
-
-.progress-text {
-  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: #00f3ff;
-  text-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
-  line-height: 1;
-}
-
-.status-text {
-  font-family: 'Orbitron', 'Chakra Petch', monospace;
-  font-size: 0.7rem;
-  color: #aaddff;
-  letter-spacing: 1px;
-  text-align: center;
-}
-
-/* Side Indicators */
-.side-indicator {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.side-indicator.left {
-  left: -40px;
-}
-
-.side-indicator.right {
-  right: -40px;
-}
-
-.indicator-bar {
-  width: 25px;
-  height: 4px;
-  background: rgba(0, 243, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.indicator-bar.active {
-  background: #ffff00;
-  box-shadow: 0 0 10px #ffff00;
-}
-
-/* Bottom Stats */
-.hud-stats {
-  position: absolute;
-  bottom: -80px;
-  display: flex;
-  gap: 3rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.stat-label {
-  font-family: 'Orbitron', 'Chakra Petch', monospace;
-  font-size: 0.65rem;
-  color: #aaddff;
-  letter-spacing: 1px;
-}
-
-.stat-bars {
-  display: flex;
-  gap: 3px;
-}
-
-.stat-bar {
-  width: 4px;
-  height: 20px;
-  background: rgba(0, 243, 255, 0.2);
-}
-
-.stat-bar.active {
-  background: #ffff00;
-  box-shadow: 0 0 8px #ffff00;
-  animation: barPulse 1s ease-in-out infinite;
-}
-
-@keyframes barPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* Orbiting Dots */
-.orbit-dot {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #00f3ff;
-  border-radius: 50%;
-  box-shadow: 0 0 15px #00f3ff;
-}
-
-.dot-1 {
-  top: 10%;
-  left: 50%;
-  animation: orbit1 4s linear infinite;
-}
-
-.dot-2 {
-  bottom: 10%;
-  right: 50%;
-  animation: orbit2 4s linear infinite;
-}
-
-@keyframes orbit1 {
-  from { transform: rotate(0deg) translateX(180px) rotate(0deg); }
-  to { transform: rotate(360deg) translateX(180px) rotate(-360deg); }
-}
-
-@keyframes orbit2 {
-  from { transform: rotate(180deg) translateX(180px) rotate(-180deg); }
-  to { transform: rotate(540deg) translateX(180px) rotate(-540deg); }
-}
-
-/* Corner Decorations */
-.corner-deco {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  border: 2px solid rgba(0, 243, 255, 0.3);
-}
-
-.corner-deco.top-left {
-  top: 20px;
-  left: 20px;
-  border-right: none;
-  border-bottom: none;
-  clip-path: polygon(0 0, 100% 0, 100% 2px, 2px 2px, 2px 100%, 0 100%);
-}
-
-.corner-deco.top-right {
-  top: 20px;
-  right: 20px;
-  border-left: none;
-  border-bottom: none;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, calc(100% - 2px) 100%, calc(100% - 2px) 2px, 0 2px);
-}
-
-.corner-deco.bottom-left {
-  bottom: 20px;
-  left: 20px;
-  border-right: none;
-  border-top: none;
-  clip-path: polygon(0 0, 2px 0, 2px calc(100% - 2px), 100% calc(100% - 2px), 100% 100%, 0 100%);
-}
-
-.corner-deco.bottom-right {
-  bottom: 20px;
-  right: 20px;
-  border-left: none;
-  border-top: none;
-  clip-path: polygon(0 calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 0, 100% 0, 100% 100%, 0 100%);
 }
 
 /* Responsive */
