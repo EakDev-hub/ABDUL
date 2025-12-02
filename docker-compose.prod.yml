@@ -1,6 +1,29 @@
 version: '3.8'
 
 services:
+  # NGINX Reverse Proxy - Main entry point on port 80
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: abdul-nginx:latest
+    container_name: abdul-nginx
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    networks:
+      - hackathon-network
+    depends_on:
+      - backend
+      - namek
+      - dashboard
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   backend:
     image: abdul-backend:latest
     container_name: abdul-backend

@@ -14,7 +14,7 @@ export default ({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const isDev = mode === 'development'
   return defineConfig({
-    base: '/',
+    base: '/form',
     server: {
       port: +env.npm_package_config_port || 3000
     },
