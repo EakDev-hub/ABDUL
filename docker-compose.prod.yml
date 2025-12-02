@@ -13,7 +13,7 @@ services:
       - .env
     restart: unless-stopped
     networks:
-      - abdul-network
+      - hackathon-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck"]
       interval: 30s
@@ -33,7 +33,7 @@ services:
       - .env
     restart: unless-stopped
     networks:
-      - abdul-network
+      - hackathon-network
     depends_on:
       - backend
     healthcheck:
@@ -54,7 +54,7 @@ services:
       - .env
     restart: unless-stopped
     networks:
-      - abdul-network
+      - hackathon-network
     depends_on:
       - backend
     healthcheck:
@@ -65,5 +65,5 @@ services:
       start_period: 40s
 
 networks:
-  abdul-network:
-    driver: bridge
+  hackathon-network:
+    external: true
