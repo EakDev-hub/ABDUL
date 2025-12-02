@@ -139,7 +139,7 @@
             <div class="panel-line"></div>
           </div>
 
-          <form @submit.prevent="handleSubmit">
+          <form @submit.prevent="handleSubmit" novalidate>
             <!-- Team Name -->
             <div class="input-group">
               <label class="input-label">
@@ -161,6 +161,7 @@
                 />
                 <div class="input-border"></div>
               </div>
+              <div v-if="errors.team" class="field-error">{{ errors.team }}</div>
             </div>
 
             <!-- Pass Key -->
@@ -182,6 +183,7 @@
                 />
                 <div class="input-border"></div>
               </div>
+              <div v-if="errors.passKey" class="field-error">{{ errors.passKey }}</div>
             </div>
 
             <!-- API URL -->
@@ -204,6 +206,7 @@
                 />
                 <div class="input-border"></div>
               </div>
+              <div v-if="errors.apiUrl" class="field-error">{{ errors.apiUrl }}</div>
             </div>
 
             <!-- Submit Button -->
@@ -278,6 +281,12 @@ function getParticleStyle(index: number) {
 }
 
 const formData = ref<SubmitRequest>({
+  team: '',
+  passKey: '',
+  apiUrl: ''
+})
+
+const errors = ref({
   team: '',
   passKey: '',
   apiUrl: ''
@@ -373,9 +382,45 @@ function stopSciFiAnimation() {
   statusText.value = 'COMPLETE'
 }
 
+function isValidUrl(urlString: string) {
+  try {
+    const url = new URL(urlString)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch (_) {
+    return false
+  }
+}
+
 async function handleSubmit() {
-  hackathonStore.setLoading(true)
+  // Reset errors
+  errors.value = {
+    team: '',
+    passKey: '',
+    apiUrl: ''
+  }
   hackathonStore.setError(null)
+
+  let hasError = false
+
+  if (!formData.value.team) {
+    errors.value.team = 'REQUIRED FIELD'
+    hasError = true
+  }
+  if (!formData.value.passKey) {
+    errors.value.passKey = 'REQUIRED FIELD'
+    hasError = true
+  }
+  if (!formData.value.apiUrl) {
+    errors.value.apiUrl = 'REQUIRED FIELD'
+    hasError = true
+  } else if (!isValidUrl(formData.value.apiUrl)) {
+    errors.value.apiUrl = 'INVALID PROTOCOL (HTTP/HTTPS ONLY)'
+    hasError = true
+  }
+
+  if (hasError) return
+
+  hackathonStore.setLoading(true)
 
   // Randomly choose loading mode
   loadingMode.value = Math.random() > 0.5 ? 'terminal' : 'scifi'
@@ -446,7 +491,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap');
 
 :root {
   --primary-cyan: #00f3ff;
@@ -465,7 +510,7 @@ onUnmounted(() => {
   bottom: 0;
   overflow: hidden;
   background: #000205;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Rajdhani', 'Chakra Petch', sans-serif;
   color: #00f3ff;
 }
 
@@ -798,7 +843,65 @@ onUnmounted(() => {
   background: #00f3ff;
   transform: translateY(-50%) rotate(45deg);
   box-shadow: 0 0 15px #00f3ff;
-  animation: markerPulse 1.5s ease-in-out infinite;
+}
+
+.field-error {
+  color: #ff003c;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  font-family: 'Share Tech Mono', 'Chakra Petch', monospace;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(255, 0, 60, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: errorGlitch 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  background: rgba(255, 0, 60, 0.1);
+  padding: 4px 8px;
+  border-left: 2px solid #ff003c;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.field-error::before {
+  content: '!';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: #ff003c;
+  color: #000;
+  font-weight: 900;
+  font-size: 0.8em;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+}
+
+@keyframes errorGlitch {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+    clip-path: inset(0 100% 0 0);
+  }
+  20% {
+    opacity: 1;
+    clip-path: inset(0 60% 0 0);
+  }
+  40% {
+    opacity: 1;
+    clip-path: inset(0 20% 0 0);
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 @keyframes markerPulse {
@@ -896,7 +999,7 @@ onUnmounted(() => {
   border: none;
   border-bottom: 2px solid rgba(0, 243, 255, 0.2);
   color: #fff;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Chakra Petch', 'Share Tech Mono', monospace;
   font-size: 1.1rem;
   transition: all 0.3s ease;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
