@@ -1,4 +1,4 @@
-name: Build and Deploy to EC2
+name: Deploy to EC2 (Remote Build)
 
 on:
   push:
@@ -6,12 +6,8 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  BACKEND_IMAGE_NAME: abdul-backend
-  NAMEK_IMAGE_NAME: abdul-namek
-
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -19,80 +15,175 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
 
-      - name: Debug - List workspace contents
+      - name: Setup SSH key (PPK with Passphrase)
+        env:
+          # SECURITY CRITICAL: Load secrets into Env Vars to prevent shell injection issues
+          # This fixes issues where special chars in passwords (e.g. $, ", \) break the script
+          SSH_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          SSH_PASS: ${{ secrets.EC2_SSH_PASSPHRASE }}
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Directory contents:"
-          ls -la
-          echo "Backend directory exists:"
-          ls -la ./backend || echo "Backend directory not found!"
-          echo "Namek directory exists:"
-          ls -la ./namek || echo "Namek directory not found!"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Backend Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Backend
-          file: ./Backend/Dockerfile
-          push: false
-          outputs: type=docker,dest=/tmp/backend-image.tar
-          tags: ${{ env.BACKEND_IMAGE_NAME }}:latest
-
-      - name: Build Namek Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./namek
-          file: ./namek/Dockerfile
-          push: false
-          outputs: type=docker,dest=/tmp/namek-image.tar
-          build-args: |
-            BUILD_STAGE=production
-            environment=production
-            namekVersion=${{ github.sha }}
-            dockerport=3000
-            API_GATEWAY_URL=${{ secrets.API_GATEWAY_URL }}
-          tags: ${{ env.NAMEK_IMAGE_NAME }}:latest
-
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          # Install PuTTY tools
+          sudo apt-get update
+          sudo apt-get install -y putty-tools
+          
+          mkdir -p $HOME/.ssh
+          chmod 700 $HOME/.ssh
+          
+          echo "=========================================="
+          echo "Starting SSH Key Setup and Conversion"
+          echo "=========================================="
+          
+          # 1. Save PPK from Env Var
+          echo "Step 1: Saving PPK file..."
+          echo "$SSH_KEY" > $HOME/.ssh/id.ppk
+          chmod 600 $HOME/.ssh/id.ppk
+          
+          # Verify PPK file was created
+          if [ ! -s $HOME/.ssh/id.ppk ]; then
+            echo "::error::PPK file is empty or wasn't created properly!"
+            exit 1
+          fi
+          echo "✓ PPK file saved successfully ($(wc -c < $HOME/.ssh/id.ppk) bytes)"
+          
+          # 2. Validate PPK format
+          echo "Step 2: Validating PPK format..."
+          if ! grep -q "PuTTY-User-Key-File" $HOME/.ssh/id.ppk; then
+            echo "::error::File doesn't appear to be a valid PPK format!"
+            echo "::error::Expected 'PuTTY-User-Key-File' header but didn't find it."
+            exit 1
+          fi
+          echo "✓ PPK format validated"
+          
+          # 3. Save Passphrase to file
+          echo "Step 3: Saving passphrase..."
+          # Create passphrase file WITH newline (critical for puttygen)
+          printf "%s\n" "$SSH_PASS" > $HOME/.ssh/passphrase.txt
+          chmod 600 $HOME/.ssh/passphrase.txt
+          
+          # Verify passphrase file exists and has content (without exposing it)
+          if [ ! -s $HOME/.ssh/passphrase.txt ]; then
+            echo "::error::Passphrase file is empty or wasn't created!"
+            exit 1
+          fi
+          echo "✓ Passphrase file created ($(wc -c < $HOME/.ssh/passphrase.txt) bytes)"
+          
+          # 4. Create empty passphrase file for unencrypted output
+          echo "Step 4: Creating empty passphrase for output key..."
+          # This tells puttygen to save the output key WITHOUT encryption
+          touch $HOME/.ssh/empty_passphrase.txt
+          chmod 600 $HOME/.ssh/empty_passphrase.txt
+          echo "✓ Empty passphrase file created"
+          
+          # 5. Convert PPK to OpenSSH format with multiple fallback methods
+          echo "Step 5: Converting PPK to OpenSSH format (decrypted)..."
+          CONVERSION_SUCCESS=false
+          
+          # METHOD 1: File-based passphrase with newline (most reliable)
+          echo "Attempting Method 1: File-based passphrase with newline..."
+          if puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa \
+             --old-passphrase $HOME/.ssh/passphrase.txt \
+             --new-passphrase $HOME/.ssh/empty_passphrase.txt 2>/dev/null; then
+            echo "✓ Method 1 succeeded!"
+            CONVERSION_SUCCESS=true
+          else
+            echo "⚠ Method 1 failed, trying alternative methods..."
+            
+            # METHOD 2: Passphrase via stdin pipe
+            echo "Attempting Method 2: Passphrase via stdin..."
+            if cat $HOME/.ssh/passphrase.txt | puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa \
+               --old-passphrase /dev/stdin \
+               --new-passphrase $HOME/.ssh/empty_passphrase.txt 2>/dev/null; then
+              echo "✓ Method 2 succeeded!"
+              CONVERSION_SUCCESS=true
+            else
+              echo "⚠ Method 2 failed, trying final method..."
+              
+              # METHOD 3: Direct echo with passphrase (fallback for edge cases)
+              echo "Attempting Method 3: Echo-based passphrase..."
+              if echo "$SSH_PASS" | puttygen $HOME/.ssh/id.ppk -O private-openssh -o $HOME/.ssh/id_rsa \
+                 --old-passphrase /dev/stdin \
+                 --new-passphrase $HOME/.ssh/empty_passphrase.txt 2>/dev/null; then
+                echo "✓ Method 3 succeeded!"
+                CONVERSION_SUCCESS=true
+              else
+                echo "::error::All conversion methods failed!"
+                echo "::error::This usually means:"
+                echo "::error::  1. The passphrase in EC2_SSH_PASSPHRASE is incorrect"
+                echo "::error::  2. The PPK file is corrupted or invalid"
+                echo "::error::  3. The PPK format is not supported by this version of puttygen"
+                echo "::error::"
+                echo "::error::Please verify:"
+                echo "::error::  - EC2_SSH_PASSPHRASE matches the passphrase used when creating the PPK"
+                echo "::error::  - EC2_SSH_PRIVATE_KEY contains a valid PPK file content"
+                echo "::error::  - The PPK was created with PuTTYgen (not a different tool)"
+                exit 1
+              fi
+            fi
+          fi
+          
+          # 5. Verify conversion was successful
+          if [ ! -f $HOME/.ssh/id_rsa ]; then
+            echo "::error::Conversion reported success but id_rsa file was not created!"
+            exit 1
+          fi
+          
+          # 6. Set proper permissions on converted key
+          echo "Step 5: Setting proper permissions..."
+          chmod 600 $HOME/.ssh/id_rsa
+          echo "✓ Permissions set to 600"
+          
+          # 7. Verify the key is properly decrypted
+          echo "Step 6: Verifying key is decrypted..."
+          # ssh-keygen -y reads the private key and prints public key
+          # If it asks for a passphrase here, the conversion failed to decrypt the key
+          if ! ssh-keygen -y -f $HOME/.ssh/id_rsa > $HOME/.ssh/id_rsa.pub 2>/dev/null; then
+            echo "::error::Key verification failed!"
+            echo "::error::The converted key is still encrypted or corrupted."
+            echo "::error::This means the passphrase was accepted by puttygen but didn't properly decrypt the key."
+            echo "::error::"
+            echo "::error::Possible causes:"
+            echo "::error::  1. PPK file uses an unsupported encryption algorithm"
+            echo "::error::  2. PPK file is corrupted"
+            echo "::error::  3. Version mismatch between PPK format and puttygen"
+            echo "::error::"
+            echo "::error::Recommended actions:"
+            echo "::error::  1. Recreate the PPK file with PuTTYgen using AES-256-CBC encryption"
+            echo "::error::  2. Or convert PPK to OpenSSH format locally and use the .pem file instead"
+            exit 1
+          fi
+          echo "✓ Key successfully decrypted and verified"
+          echo "✓ Public key fingerprint: $(ssh-keygen -lf $HOME/.ssh/id_rsa.pub | awk '{print $2}')"
+          
+          # 8. Add host to known_hosts
+          echo "Step 7: Adding EC2 host to known_hosts..."
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> $HOME/.ssh/known_hosts 2>/dev/null || true
+          echo "✓ Host key added"
+          
+          # 9. Cleanup sensitive files
+          echo "Step 8: Cleaning up temporary files..."
+          rm -f $HOME/.ssh/id.ppk $HOME/.ssh/passphrase.txt $HOME/.ssh/empty_passphrase.txt
+          echo "✓ Cleanup complete"
+          
+          echo "=========================================="
+          echo "✓ SSH Key Setup Completed Successfully!"
+          echo "=========================================="
 
       - name: Transfer docker-compose file to EC2
         run: |
-          scp -o StrictHostKeyChecking=no \
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             docker-compose.prod.yml \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/docker-compose.yml
 
       - name: Transfer deployment script to EC2
         run: |
-          scp -o StrictHostKeyChecking=no \
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             scripts/deploy-ec2.sh \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/deploy-ec2.sh
 
-      - name: Transfer backend image to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no \
-            /tmp/backend-image.tar \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/backend-image.tar
-
-      - name: Transfer namek image to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no \
-            /tmp/namek-image.tar \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/namek-image.tar
-
       - name: Create .env file on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "cat > /tmp/.env << 'EOF'
           ${{ secrets.BACKEND_ENV }}
@@ -101,13 +192,16 @@ jobs:
 
       - name: Execute deployment script on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "bash /tmp/deploy-ec2.sh"
+            "sudo bash /tmp/deploy-ec2.sh \
+              '${{ secrets.PAT_GITHUB }}' \
+              '${{ secrets.REPO_GITHUB }}' \
+              '${{ secrets.API_GATEWAY_URL }}'"
 
       - name: Verify deployment
         run: |
-          ssh -o StrictHostKeyChecking=no \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "docker ps --filter 'name=abdul' --format 'table {{.Names}}\t{{.Status}}'"
 

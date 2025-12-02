@@ -22,13 +22,14 @@ The deployment uses the following architecture:
 GitHub Repository
     ↓
 GitHub Actions Workflow
-    ├─ Build Backend Docker Image (C#)
-    ├─ Build Namek Docker Image (Node.js)
-    ├─ Export images as tar files
-    └─ Transfer to EC2 via SCP
+    ├─ Transfer docker-compose config
+    ├─ Transfer deployment script
+    └─ Execute deployment via SSH
          ↓
     EC2 Instance
-    ├─ Load Docker images
+    ├─ Git clone/pull repository (using GitHub PAT)
+    ├─ Build Backend Docker Image (C#)
+    ├─ Build Namek Docker Image (Node.js)
     ├─ Run docker-compose
     └─ Start Services
          ├─ Backend API (port 5000)
@@ -37,7 +38,10 @@ GitHub Actions Workflow
 
 ### Key Features
 
-- **No Docker Registry Required**: Images are built on GitHub Actions and transferred as tar files
+- **Remote Build**: Docker images are built directly on EC2 (no registry needed)
+- **Git-based Deployment**: Always builds from latest git commit
+- **Faster Deployment**: No large image transfers, only code changes via git
+- **Build Caching**: Docker layer caching on EC2 speeds up rebuilds
 - **Secure Transfer**: SSH/SCP for secure file transfer to EC2
 - **Atomic Deployment**: Both services deployed together using docker-compose
 - **Health Checks**: Automatic verification of service health
@@ -56,14 +60,16 @@ GitHub Actions Workflow
 ### AWS EC2 Instance Requirements
 
 - **OS**: Ubuntu 20.04 LTS or later (or Amazon Linux 2)
-- **Instance Type**: t3.small or larger (t3.micro may be too small)
-- **Storage**: At least 20GB free disk space
-- **Security Group**: Ports 5000 and 3000 open for inbound traffic
+- **Instance Type**: t3.small or larger recommended for building (t3.micro may be too slow)
+- **Storage**: At least 30GB free disk space (for git repo + Docker builds)
+- **Security Group**: Ports 5000, 3000, and 22 open for inbound traffic
 - **Software**:
   - Docker installed and running
   - Docker Compose installed
+  - Git installed
   - SSH access configured
   - curl installed (for health checks)
+- **Network**: Outbound internet access to GitHub and Docker Hub
 
 ### Local Machine Requirements
 
@@ -97,16 +103,41 @@ You need to configure the following secrets in your GitHub repository:
 - **Type**: String
 
 #### 3. `EC2_SSH_PRIVATE_KEY`
-- **Description**: Private SSH key for EC2 access
+- **Description**: Private SSH key for EC2 access (supports both PuTTY .ppk and OpenSSH .pem formats)
 - **How to get it**:
-  1. Locate your EC2 key pair file (e.g., `my-key.pem`)
+  1. Locate your EC2 key pair file (e.g., `my-key.pem` or `my-key.ppk`)
   2. Open it in a text editor
-  3. Copy the entire content (including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`)
+  3. Copy the entire content (including all headers and footers)
   4. Paste into this secret
 - **Type**: Secret (multi-line)
+- **Format**: Both .ppk (PuTTY) and .pem (OpenSSH) formats are supported
 - **Important**: Keep this secure and never commit to repository
 
-#### 4. `BACKEND_ENV`
+#### 4. `EC2_SSH_PASSPHRASE` (Optional)
+- **Description**: Passphrase for your SSH private key (if encrypted)
+- **Example**: Your key passphrase
+- **Type**: Secret
+- **Required**: Only if your SSH key is encrypted with a passphrase
+
+#### 5. `PAT_GITHUB`
+- **Description**: GitHub Personal Access Token for cloning repository on EC2
+- **Note**: GitHub reserves the `GITHUB_` prefix for system secrets, so we use `PAT_GITHUB`
+- **How to get it**:
+  1. Go to GitHub Settings → Developer settings → Personal access tokens
+  2. Generate new token (classic)
+  3. Select scope: `repo` (Full control of private repositories)
+  4. Copy the token immediately
+- **Type**: Secret
+- **Important**: This token allows read access to your repository
+
+#### 6. `REPO_GITHUB`
+- **Description**: GitHub repository URL without https://
+- **Note**: GitHub reserves the `GITHUB_` prefix for system secrets, so we use `REPO_GITHUB`
+- **Example**: `github.com/username/ABDUL.git`
+- **Type**: String
+- **Format**: `github.com/username/repository.git`
+
+#### 7. `BACKEND_ENV`
 - **Description**: Environment variables for the backend service
 - **Example**:
   ```
@@ -117,9 +148,9 @@ You need to configure the following secrets in your GitHub repository:
   OPENROUTER_API_KEY=your_api_key_here
   ```
 - **Type**: Secret (multi-line)
-- **Reference**: See `backend/.env.example`
+- **Reference**: See `Backend/.env.example`
 
-#### 5. `NAMEK_ENV`
+#### 8. `NAMEK_ENV`
 - **Description**: Environment variables for the Namek frontend service
 - **Example**:
   ```
@@ -131,7 +162,7 @@ You need to configure the following secrets in your GitHub repository:
 - **Reference**: See `namek/.env.example`
 - **Important**: `VITE_API_GATEWAY_URL` must be accessible from the browser
 
-#### 6. `API_GATEWAY_URL` (Optional)
+#### 9. `API_GATEWAY_URL`
 - **Description**: Backend API URL for Namek to communicate with backend
 - **Example**: `http://localhost:5000` or `http://your-ec2-ip:5000`
 - **Type**: String
@@ -147,6 +178,8 @@ EC2_SSH_PRIVATE_KEY: |
   MIIEpAIBAAKCAQEA2x5q...
   ... (rest of key content)
   -----END RSA PRIVATE KEY-----
+PAT_GITHUB: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+REPO_GITHUB: github.com/username/ABDUL.git
 BACKEND_ENV: |
   ASPNETCORE_ENVIRONMENT=Production
   ASPNETCORE_URLS=http://+:5000
@@ -181,15 +214,15 @@ aws ec2 run-instances \
 ssh -i /path/to/your-key.pem ubuntu@your-ec2-ip
 ```
 
-### 3. Install Docker
+### 3. Install Docker and Git
 
 ```bash
 # Update system
 sudo apt-get update
 sudo apt-get upgrade -y
 
-# Install Docker
-sudo apt-get install -y docker.io
+# Install Docker and Git
+sudo apt-get install -y docker.io git
 
 # Start Docker service
 sudo systemctl start docker
@@ -198,6 +231,9 @@ sudo systemctl enable docker
 # Add current user to docker group (optional, for sudo-less commands)
 sudo usermod -aG docker $USER
 newgrp docker
+
+# Verify Git installation
+git --version
 ```
 
 ### 4. Install Docker Compose
@@ -257,15 +293,17 @@ To manually trigger deployment:
 
 The GitHub Actions workflow performs these steps:
 
-1. **Checkout Code**: Pulls the latest code from the repository
-2. **Build Backend Image**: Builds Docker image for C# backend
-3. **Build Namek Image**: Builds Docker image for Node.js frontend
-4. **Export Images**: Saves images as tar files
-5. **Setup SSH**: Configures SSH connection to EC2
-6. **Transfer Files**: Copies docker-compose, deployment script, and images to EC2
-7. **Create .env**: Sets up environment variables on EC2
-8. **Execute Deployment**: Runs deployment script on EC2
-9. **Verify Deployment**: Checks if services are running and healthy
+1. **Checkout Code**: Pulls the latest code from the repository (to get deployment scripts)
+2. **Setup SSH**: Configures SSH connection to EC2 using OpenSSH key
+3. **Transfer Files**: Copies docker-compose and deployment script to EC2
+4. **Create .env**: Sets up environment variables on EC2
+5. **Execute Deployment**: Runs deployment script on EC2 which:
+   - Clones/pulls the latest code from GitHub using PAT
+   - Builds Docker images for backend and frontend
+   - Stops old containers
+   - Starts new containers with docker-compose
+6. **Verify Deployment**: Checks if services are running and healthy
+7. **Cleanup**: Removes SSH keys and temporary files
 
 ### Monitoring Deployment
 
@@ -311,9 +349,25 @@ chmod 600 ~/.ssh/your-key.pem
 # Verify EC2_SSH_PRIVATE_KEY secret is correctly formatted
 ```
 
-#### 2. Docker Images Not Loading
+#### 2. Git Clone Failed
 
-**Error**: `Failed to load backend image`
+**Error**: `Failed to clone repository` or `Authentication failed`
+
+**Solution**:
+```bash
+# Check if git is installed
+git --version
+
+# Verify GitHub PAT has correct permissions
+# Ensure REPO_GITHUB format is correct (github.com/user/repo.git)
+
+# Test git clone manually on EC2
+git clone https://YOUR_PAT@github.com/user/repo.git /tmp/test-clone
+```
+
+#### 3. Docker Build Failed
+
+**Error**: `Failed to build backend image` or `Failed to build namek image`
 
 **Solution**:
 ```bash
@@ -323,11 +377,15 @@ df -h
 # Check Docker daemon status
 sudo systemctl status docker
 
-# Restart Docker
+# View build logs
+docker logs abdul-backend
+docker logs abdul-namek
+
+# Restart Docker if needed
 sudo systemctl restart docker
 ```
 
-#### 3. Containers Not Starting
+#### 4. Containers Not Starting
 
 **Error**: `Container exited with code 1`
 
@@ -344,7 +402,7 @@ sudo netstat -tlnp | grep 5000
 sudo netstat -tlnp | grep 3000
 ```
 
-#### 4. Health Check Failures
+#### 5. Health Check Failures
 
 **Error**: `Health check failed`
 
@@ -361,7 +419,7 @@ docker logs abdul-backend --tail 50
 docker logs abdul-namek --tail 50
 ```
 
-#### 5. Out of Disk Space
+#### 6. Out of Disk Space
 
 **Error**: `No space left on device`
 
@@ -373,8 +431,12 @@ docker image prune -a
 # Remove unused volumes
 docker volume prune
 
+# Remove old git clones if any
+rm -rf /tmp/test-clone
+
 # Check disk usage
 du -sh /var/lib/docker/
+du -sh /opt/abdul/
 
 # Increase EBS volume size (AWS Console)
 ```
@@ -463,15 +525,16 @@ docker-compose up -d
 
 ### Reduce Build Time
 
-1. **Use Docker layer caching**: Ensure Dockerfiles are optimized
-2. **Parallel builds**: GitHub Actions already builds both images in parallel
+1. **Use Docker layer caching**: Images are built on EC2, subsequent builds use cache
+2. **Optimize Dockerfiles**: Ensure Dockerfiles are optimized for layer caching
 3. **Smaller base images**: Consider using alpine variants
+4. **Faster EC2 Instance**: Use t3.medium or larger for faster builds
 
-### Reduce Transfer Time
+### Reduce Clone Time
 
-1. **Compress images**: Use `docker save` with compression
-2. **Optimize image size**: Remove unnecessary dependencies
-3. **Use faster network**: Ensure EC2 is in same region as GitHub
+1. **Shallow clone**: Use git shallow clone if repository is large
+2. **Optimize network**: Ensure EC2 has good internet connectivity
+3. **Git cache**: Subsequent deployments use `git pull` which is much faster
 
 ### Monitor Resource Usage
 
