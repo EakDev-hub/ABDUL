@@ -28,10 +28,43 @@
 
     <!-- Main Content -->
     <div class="main-content">
+      <!-- TURBO Title -->
+      <div v-if="result" class="turbo-title-container">
+        <h1 class="turbo-title">
+          <span class="turbo-text" data-text="TURBO">
+            TURBO
+            <span class="grunge-overlay"></span>
+          </span>
+        </h1>
+      </div>
+
+      <!-- Header Section -->
+      <div v-if="result" class="header-section">
+        <h1 class="main-title">EVALUATION RESULTS</h1>
+        <div class="subtitle-wrapper">
+          <div class="tech-line left"></div>
+          <p class="subtitle">
+            <span class="ai-badge">
+              <svg class="ai-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+              ANALYSIS COMPLETE
+            </span>
+            <span class="subtitle-text">PERFORMANCE METRICS GENERATED</span>
+          </p>
+          <div class="tech-line right"></div>
+        </div>
+      </div>
+
       <!-- Results Section -->
       <div v-if="result" class="results-container">
         <!-- Summary -->
-        <div class="summary-card">
+        <div class="summary-card hud-panel">
+          <div class="panel-corner top-left"></div>
+          <div class="panel-corner top-right"></div>
+          <div class="panel-corner bottom-left"></div>
+          <div class="panel-corner bottom-right"></div>
           <!-- Card Header with Badge -->
           <div class="card-header">
             <div class="header-title">
@@ -742,14 +775,234 @@ function goBack() {
   position: relative;
   z-index: 2;
   padding: 2rem;
-  padding-top: 5rem;
+  padding-top: 3rem;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* TURBO Title */
+.turbo-title-container {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  animation: turboSlideDown 1s ease-out;
+}
+
+@keyframes turboSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turbo-title {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 15px;
+  margin: 0;
+  text-transform: uppercase;
+  position: relative;
+  display: inline-block;
+}
+
+.turbo-text {
+  position: relative;
+  display: inline-block;
+  color: #ffffff;
+}
+
+.grunge-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 5% 10%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 8% 18%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 15% 35%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 20% 50%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 25% 65%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 30% 80%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 40% 30%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 50% 60%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 60% 25%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 70% 55%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 80% 85%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 90% 30%, rgba(0,0,0,0.9) 1px, transparent 1px);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: multiply;
+}
+
+.turbo-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 100%;
+  height: 100%;
+  color: rgba(250, 71, 134, 0.6);
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.turbo-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 100%;
+  height: 100%;
+  color: rgba(107, 140, 255, 0.6);
+  z-index: -2;
+  filter: blur(2px);
+}
+
+/* Header Section */
+.header-section {
+  text-align: center;
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+  animation: formSlideIn 0.8s ease-out;
+}
+
+@keyframes formSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.main-title {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #fff, #FA4786);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px rgba(250, 71, 134, 0.6));
+}
+
+.subtitle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.tech-line {
+  height: 1px;
+  width: 50px;
+  background: linear-gradient(90deg, transparent, #FA4786, transparent);
+}
+
+.subtitle {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 0.85rem;
+  color: #FFB3D1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.ai-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  color: #FA4786;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+}
+
+.ai-icon {
+  width: 16px;
+  height: 16px;
+  filter: drop-shadow(0 0 5px #FA4786);
+}
+
+.subtitle-text {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  opacity: 0.8;
 }
 
 /* Results */
 .results-container {
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
+}
+
+/* Panel Corners */
+.panel-corner {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  border: 3px solid #FA4786;
+  z-index: 10;
+  box-shadow: 0 0 15px rgba(250, 71, 134, 0.6), 0 0 10px rgba(107, 140, 255, 0.3);
+  animation: cornerPulse 2s ease-in-out infinite;
+}
+
+@keyframes cornerPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.top-left {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+  clip-path: polygon(0 0, 100% 0, 100% 3px, 3px 3px, 3px 100%, 0 100%);
+}
+
+.top-right {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, calc(100% - 3px) 100%, calc(100% - 3px) 3px, 0 3px);
+}
+
+.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+  clip-path: polygon(0 0, 3px 0, 3px calc(100% - 3px), 100% calc(100% - 3px), 100% 100%, 0 100%);
+}
+
+.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+  clip-path: polygon(0 calc(100% - 3px), calc(100% - 3px) calc(100% - 3px), calc(100% - 3px) 0, 100% 0, 100% 100%, 0 100%);
 }
 
 .summary-card {
@@ -1239,7 +1492,38 @@ function goBack() {
 
   .main-content {
     padding: 1rem;
-    padding-top: 4rem;
+    padding-top: 2rem;
+    gap: 0.5rem;
+  }
+
+  .turbo-title {
+    font-size: 2rem;
+    letter-spacing: 8px;
+  }
+
+  .main-title {
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+  }
+
+  .header-section {
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .ai-badge {
+    font-size: 0.7rem;
+  }
+
+  .subtitle-text {
+    font-size: 0.65rem;
+  }
+
+  .tech-line {
+    width: 30px;
   }
 
   .card-header {
@@ -1268,10 +1552,23 @@ function goBack() {
     padding-top: 0;
   }
 
-  .results-table th,
-  .results-table td {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.8rem;
+  .table-header,
+  .table-row {
+    grid-template-columns: 60px 1fr 1fr 1fr 100px;
+    font-size: 0.75rem;
+  }
+
+  .table-cell {
+    padding: 0.7rem 0.5rem;
+  }
+
+  .header-cell {
+    font-size: 0.7rem;
+  }
+
+  .score-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
   }
 }
 </style>
