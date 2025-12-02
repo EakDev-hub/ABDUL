@@ -25,7 +25,7 @@
           <defs>
             <linearGradient id="pinkBlueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" style="stop-color:#FA4786;stop-opacity:1" />
-              <stop offset="50%" style="stop-color:#B84FD1;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#002D72;stop-opacity:1" />
               <stop offset="100%" style="stop-color:#6B8CFF;stop-opacity:1" />
             </linearGradient>
           </defs>
@@ -36,10 +36,6 @@
         <!-- Center Display -->
         <div class="hud-center">
           <div class="center-frame">
-            <div class="frame-corner tl"></div>
-            <div class="frame-corner tr"></div>
-            <div class="frame-corner bl"></div>
-            <div class="frame-corner br"></div>
             <div class="status-text">{{ statusText }}</div>
           </div>
         </div>
@@ -422,62 +418,133 @@ onUnmounted(() => {
 }
 
 .center-frame {
-  width: 180px;
-  height: 120px;
-  background: rgba(0, 10, 30, 0.9);
-  border: 2px solid #FA4786;
+  width: 220px;
+  height: 140px;
+  background: linear-gradient(135deg, rgba(0, 10, 30, 0.95) 0%, rgba(10, 5, 40, 0.98) 100%);
+  border: 3px solid transparent;
+  background-clip: padding-box;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-  box-shadow: 0 0 30px rgba(250, 71, 134, 0.4), 0 0 20px rgba(107, 140, 255, 0.3), inset 0 0 30px rgba(250, 71, 134, 0.1);
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  box-shadow:
+    0 0 40px rgba(250, 71, 134, 0.6),
+    0 0 60px rgba(107, 140, 255, 0.4),
+    inset 0 0 40px rgba(250, 71, 134, 0.15),
+    inset 0 0 60px rgba(107, 140, 255, 0.1);
+  animation: frameGlow 2s ease-in-out infinite;
 }
 
-.frame-corner {
+.center-frame::before {
+  content: '';
   position: absolute;
-  width: 15px;
-  height: 15px;
-  border: 2px solid #6B8CFF;
-  box-shadow: 0 0 10px #6B8CFF, 0 0 15px rgba(107, 140, 255, 0.5);
+  inset: -3px;
+  background: linear-gradient(135deg, #FA4786 0%, #002D72 50%, #6B8CFF 100%);
+  border-radius: inherit;
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  z-index: -1;
+  animation: borderFlow 3s linear infinite;
 }
 
-.frame-corner.tl {
-  top: -2px;
-  left: -2px;
-  border-right: none;
-  border-bottom: none;
+.center-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(250, 71, 134, 0.1) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(107, 140, 255, 0.1) 100%);
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  animation: shimmer 2s ease-in-out infinite;
+  pointer-events: none;
 }
 
-.frame-corner.tr {
-  top: -2px;
-  right: -2px;
-  border-left: none;
-  border-bottom: none;
+@keyframes frameGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 40px rgba(250, 71, 134, 0.6),
+      0 0 60px rgba(107, 140, 255, 0.4),
+      inset 0 0 40px rgba(250, 71, 134, 0.15),
+      inset 0 0 60px rgba(107, 140, 255, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(250, 71, 134, 0.8),
+      0 0 80px rgba(107, 140, 255, 0.6),
+      inset 0 0 50px rgba(250, 71, 134, 0.2),
+      inset 0 0 70px rgba(107, 140, 255, 0.15);
+  }
 }
 
-.frame-corner.bl {
-  bottom: -2px;
-  left: -2px;
-  border-right: none;
-  border-top: none;
+@keyframes borderFlow {
+  0% {
+    background: linear-gradient(135deg, #FA4786 0%, #002D72 50%, #6B8CFF 100%);
+  }
+  33% {
+    background: linear-gradient(135deg, #6B8CFF 0%, #FA4786 50%, #002D72 100%);
+  }
+  66% {
+    background: linear-gradient(135deg, #002D72 0%, #6B8CFF 50%, #FA4786 100%);
+  }
+  100% {
+    background: linear-gradient(135deg, #FA4786 0%, #002D72 50%, #6B8CFF 100%);
+  }
 }
 
-.frame-corner.br {
-  bottom: -2px;
-  right: -2px;
-  border-left: none;
-  border-top: none;
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 .status-text {
   font-family: 'Orbitron', 'Chakra Petch', monospace;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #FFB3D1;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-align: center;
+  text-shadow:
+    0 0 10px rgba(255, 179, 209, 0.8),
+    0 0 20px rgba(250, 71, 134, 0.6),
+    0 0 30px rgba(107, 140, 255, 0.4);
+  animation: textGlow 2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(250, 71, 134, 0.1) 20%,
+    rgba(107, 140, 255, 0.1) 80%,
+    transparent 100%);
+  border-radius: 4px;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 10px rgba(255, 179, 209, 0.8),
+      0 0 20px rgba(250, 71, 134, 0.6),
+      0 0 30px rgba(107, 140, 255, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 0 15px rgba(255, 179, 209, 1),
+      0 0 30px rgba(250, 71, 134, 0.8),
+      0 0 45px rgba(107, 140, 255, 0.6);
+  }
 }
 
 /* Side Indicators */
@@ -506,7 +573,7 @@ onUnmounted(() => {
 }
 
 .indicator-bar.active {
-  background: linear-gradient(135deg, #FA4786, #6B8CFF);
+  background: linear-gradient(135deg, #FA4786, #002D72, #6B8CFF);
   box-shadow: 0 0 10px #FA4786, 0 0 15px rgba(107, 140, 255, 0.5);
 }
 
@@ -544,7 +611,7 @@ onUnmounted(() => {
 }
 
 .stat-bar.active {
-  background: linear-gradient(135deg, #FA4786, #6B8CFF);
+  background: linear-gradient(135deg, #FA4786, #002D72, #6B8CFF);
   box-shadow: 0 0 8px #FA4786, 0 0 12px rgba(107, 140, 255, 0.5);
   animation: barPulse 1s ease-in-out infinite;
 }
@@ -559,7 +626,7 @@ onUnmounted(() => {
   position: absolute;
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle, #FA4786, #6B8CFF);
+  background: radial-gradient(circle, #FA4786, #002D72, #6B8CFF);
   border-radius: 50%;
   box-shadow: 0 0 15px #FA4786, 0 0 20px rgba(107, 140, 255, 0.5);
 }
@@ -637,8 +704,13 @@ onUnmounted(() => {
     height: 300px;
   }
   .center-frame {
-    width: 140px;
-    height: 100px;
+    width: 180px;
+    height: 120px;
+  }
+
+  .status-text {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
   }
 }
 </style>
