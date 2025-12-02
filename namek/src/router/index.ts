@@ -17,11 +17,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'HackathonResult',
     component: () => import('@/pages/HackathonResult.vue')
   },
-  {
-    path: '/loading-test',
-    name: 'LoadingTest',
-    component: () => import('@/pages/LoadingTest.vue')
-  },
+  // {
+  //   path: '/loading-test',
+  //   name: 'LoadingTest',
+  //   component: () => import('@/pages/LoadingTest.vue')
+  // },
   {
     path: '/hackathon/result/mock',
     name: 'HackathonResultMock',
