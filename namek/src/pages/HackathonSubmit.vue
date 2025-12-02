@@ -59,7 +59,6 @@
                 <div class="frame-corner tr"></div>
                 <div class="frame-corner bl"></div>
                 <div class="frame-corner br"></div>
-                <div class="progress-text">{{ Math.round(progress) }}%</div>
                 <div class="status-text">{{ statusText }}</div>
               </div>
             </div>
@@ -139,7 +138,7 @@
             <div class="panel-line"></div>
           </div>
 
-          <form @submit.prevent="handleSubmit" novalidate>
+          <form novalidate @submit.prevent="handleSubmit">
             <!-- Team Name -->
             <div class="input-group">
               <label class="input-label">
@@ -311,8 +310,12 @@ const codeSnippets = [
   `> COMPILING RESULTS...\n> ENCRYPTING PAYLOAD...\n> TRANSMITTING TO CORE...\n\n`
 ]
 
+const isAnimationRunning = ref(false)
+const animationStopRequested = ref(false)
+
 async function typeText(text: string, speed: number = 15): Promise<void> {
   for (let i = 0; i < text.length; i++) {
+    if (!isAnimationRunning.value) break
     displayedText.value += text[i]
     await new Promise(resolve => setTimeout(resolve, speed))
     // Auto-scroll to bottom
@@ -323,23 +326,44 @@ async function typeText(text: string, speed: number = 15): Promise<void> {
 }
 
 async function runTerminalAnimation() {
-  displayedText.value = ''
-  // Type random code snippets
-  for (const snippet of codeSnippets) {
-    await typeText(snippet, 8)
+  // Don't clear text - keep it continuous
+  isAnimationRunning.value = true
+  animationStopRequested.value = false
+
+  // Loop animation until stop is requested
+  while (isAnimationRunning.value && !animationStopRequested.value) {
+    // Type random code snippets
+    for (const snippet of codeSnippets) {
+      if (!isAnimationRunning.value || animationStopRequested.value) break
+      await typeText(snippet, 8)
+    }
+
+    // If we should stop, show completion messages
+    if (animationStopRequested.value) {
+      terminalTitle.value = 'ANALYSIS COMPLETE'
+      await typeText('\n[✓] SYSTEM DIAGNOSTICS: GREEN\n', 30)
+      await typeText('[✓] DATA INTEGRITY: VERIFIED\n', 30)
+      await typeText('[✓] REPORT GENERATED\n\n', 30)
+      await typeText('>>> REDIRECTING TO DASHBOARD...', 40)
+      await new Promise(resolve => setTimeout(resolve, 800))
+      break
+    }
+
+    // Continue adding more text instead of clearing
+    if (isAnimationRunning.value && !animationStopRequested.value) {
+      await typeText('\n', 10)
+      // No clearing - just continue
+    }
   }
-  // Final messages
-  terminalTitle.value = 'ANALYSIS COMPLETE'
-  await typeText('\n[✓] SYSTEM DIAGNOSTICS: GREEN\n', 30)
-  await typeText('[✓] DATA INTEGRITY: VERIFIED\n', 30)
-  await typeText('[✓] REPORT GENERATED\n\n', 30)
-  await typeText('>>> REDIRECTING TO DASHBOARD...', 40)
-  // Wait a bit before closing
-  await new Promise(resolve => setTimeout(resolve, 800))
+
+  isAnimationRunning.value = false
 }
 
 async function runSciFiAnimation() {
   progress.value = 0
+  isAnimationRunning.value = true
+  animationStopRequested.value = false
+
   const statuses = [
     'INITIALIZING...',
     'CONNECTING TO AI CORE...',
@@ -353,10 +377,32 @@ async function runSciFiAnimation() {
   let statusIndex = 0
   statusText.value = statuses[0]
 
-  // Progress animation
+  // Progress animation - loop until stop is requested
   progressInterval = window.setInterval(() => {
+    if (!isAnimationRunning.value) {
+      if (progressInterval) {
+        clearInterval(progressInterval)
+        progressInterval = null
+      }
+      return
+    }
+
+    // If stop requested and we're at 100%, complete
+    if (animationStopRequested.value && progress.value >= 100) {
+      progress.value = 100
+      arcProgress.value = 0
+      statusText.value = 'COMPLETE'
+      if (progressInterval) {
+        clearInterval(progressInterval)
+        progressInterval = null
+      }
+      isAnimationRunning.value = false
+      return
+    }
+
+    // Normal progress
     if (progress.value < 100) {
-      progress.value += Math.random() * 3 + 1
+      progress.value += Math.random() * 2 + 0.5
       if (progress.value > 100) progress.value = 100
 
       // Update arc progress (534 is full circle, 0 is complete)
@@ -368,18 +414,17 @@ async function runSciFiAnimation() {
         statusIndex = newIndex
         statusText.value = statuses[statusIndex]
       }
+    } else if (!animationStopRequested.value) {
+      // Loop back to beginning if not stopping
+      progress.value = 0
+      statusIndex = 0
+      statusText.value = statuses[0]
     }
   }, 100)
 }
 
-function stopSciFiAnimation() {
-  if (progressInterval) {
-    clearInterval(progressInterval)
-    progressInterval = null
-  }
-  progress.value = 100
-  arcProgress.value = 0
-  statusText.value = 'COMPLETE'
+function stopAnimation() {
+  animationStopRequested.value = true
 }
 
 function isValidUrl(urlString: string) {
@@ -432,54 +477,82 @@ async function handleSubmit() {
   const minDelay = Math.floor(Math.random() * 5000) + 5000
   const startTime = Date.now()
 
-  // Start animation based on mode
-  let animationPromise: Promise<void>
+  // Start animation based on mode (runs in background)
   if (loadingMode.value === 'terminal') {
-    animationPromise = runTerminalAnimation()
+    runTerminalAnimation() // Start terminal animation loop
   } else {
-    runSciFiAnimation()
-    // Create a promise that resolves when API is done
-    animationPromise = new Promise(resolve => {
-      setTimeout(resolve, 100) // Small delay to start animation
-    })
+    runSciFiAnimation() // Start sci-fi animation loop
   }
 
-  // API call
-  const apiPromise = (async () => {
-    try {
-      const response = await hackathonService.submitAnswer(formData.value)
-      hackathonStore.setResult(response)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'SYSTEM ERROR: CONNECTION FAILED'
-      hackathonStore.setError(errorMessage)
+  // API call (runs in parallel with animation)
+  try {
+    const response = await hackathonService.submitAnswer(formData.value)
+    hackathonStore.setResult(response)
+
+    // Calculate remaining time to meet minimum delay
+    const elapsedTime = Date.now() - startTime
+    const remainingTime = Math.max(0, minDelay - elapsedTime)
+
+    // Wait for remaining time if needed
+    if (remainingTime > 0) {
+      await new Promise(resolve => setTimeout(resolve, remainingTime))
     }
-  })()
 
-  // Wait for animation and API to complete
-  await Promise.all([animationPromise, apiPromise])
+    // Stop animation gracefully
+    stopAnimation()
 
-  // Calculate remaining time to meet minimum delay
-  const elapsedTime = Date.now() - startTime
-  const remainingTime = Math.max(0, minDelay - elapsedTime)
+    // Wait for animation to complete gracefully
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-  // Wait for remaining time if needed
-  if (remainingTime > 0) {
-    await new Promise(resolve => setTimeout(resolve, remainingTime))
-  }
+    // Hide loading
+    showTerminal.value = false
+    hackathonStore.setLoading(false)
 
-  // Stop sci-fi animation if active
-  if (loadingMode.value === 'scifi') {
-    stopSciFiAnimation()
-    await new Promise(resolve => setTimeout(resolve, 800)) // Show 100% briefly
-  }
-
-  // Hide loading
-  showTerminal.value = false
-  hackathonStore.setLoading(false)
-
-  // Navigate to results page if successful
-  if (hackathonStore.result) {
+    // Navigate to results page immediately
     router.push('/hackathon/result')
+  } catch (err: any) {
+    console.error('API Error:', err)
+
+    // Extract error information from response
+    const errorData = err.response?.data
+    const statusCode = err.response?.status
+
+    let errorMessage = 'SYSTEM ERROR: CONNECTION FAILED'
+    let errorDetails = ''
+
+    if (errorData) {
+      // Handle different error response formats
+      errorMessage = errorData.error || errorData.message || errorMessage
+      errorDetails = errorData.details || errorData.detail || err.message || ''
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+
+    hackathonStore.setError(errorMessage, statusCode, errorDetails)
+
+    // Calculate remaining time to meet minimum delay
+    const elapsedTime = Date.now() - startTime
+    const remainingTime = Math.max(0, minDelay - elapsedTime)
+
+    // Wait for remaining time if needed
+    if (remainingTime > 0) {
+      await new Promise(resolve => setTimeout(resolve, remainingTime))
+    }
+
+    // Stop animation gracefully
+    stopAnimation()
+
+    // Wait for animation to complete gracefully
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // Hide loading
+    showTerminal.value = false
+    hackathonStore.setLoading(false)
+
+    // Navigate to results page to show error
+    if (hackathonStore.errorState?.hasError) {
+      router.push('/hackathon/result')
+    }
   }
 }
 

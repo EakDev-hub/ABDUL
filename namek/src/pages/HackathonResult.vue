@@ -28,8 +28,48 @@
 
     <!-- Main Content -->
     <div class="main-content">
+      <!-- Error Section -->
+      <div v-if="errorState?.hasError" class="error-container">
+        <div class="error-card">
+          <div class="error-header">
+            <svg class="error-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <h2 class="error-title">SYSTEM ERROR</h2>
+          </div>
+
+          <div class="error-body">
+            <div class="error-code" v-if="errorState.errorCode">
+              ERROR CODE: <span class="code-value">{{ errorState.errorCode }}</span>
+            </div>
+
+            <div class="error-message-box">
+              <div class="message-label">ERROR MESSAGE:</div>
+              <div class="message-text">{{ errorState.errorMessage }}</div>
+            </div>
+
+            <div class="error-details-box" v-if="errorState.errorDetails">
+              <div class="details-label">DETAILS:</div>
+              <div class="details-text">{{ errorState.errorDetails }}</div>
+            </div>
+          </div>
+
+          <div class="error-footer">
+            <button class="retry-button" @click="goBack">
+              <svg class="retry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 4v6h6"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+              <span>RETRY SUBMISSION</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Results Section -->
-      <div v-if="result" class="results-container">
+      <div v-else-if="result" class="results-container">
         <!-- Summary -->
         <div class="summary-card">
           <!-- Card Header with Badge -->
@@ -130,6 +170,7 @@ const router = useRouter()
 const hackathonStore = useHackathonStore()
 
 const result = computed(() => hackathonStore.result)
+const errorState = computed(() => hackathonStore.errorState)
 
 // Particle animation
 function getParticleStyle(index: number) {
@@ -1264,3 +1305,253 @@ function goBack() {
   }
 }
 </style>
+
+/* Error Container */
+.error-container {
+  max-width: 900px;
+  margin: 0 auto;
+  animation: errorSlideIn 0.6s ease-out;
+}
+
+@keyframes errorSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-card {
+  background: rgba(20, 0, 0, 0.9);
+  border: 2px solid #ff4444;
+  padding: 0;
+  position: relative;
+  backdrop-filter: blur(15px);
+  clip-path: polygon(
+    30px 0, 100% 0,
+    100% calc(100% - 30px), calc(100% - 30px) 100%,
+    0 100%, 0 30px
+  );
+  box-shadow:
+    0 0 60px rgba(255, 68, 68, 0.4),
+    inset 0 0 80px rgba(255, 68, 68, 0.1);
+  animation: errorGlow 2s ease-in-out infinite;
+  overflow: hidden;
+}
+
+@keyframes errorGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 60px rgba(255, 68, 68, 0.4),
+      inset 0 0 80px rgba(255, 68, 68, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 80px rgba(255, 68, 68, 0.6),
+      inset 0 0 100px rgba(255, 68, 68, 0.15);
+  }
+}
+
+.error-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px solid transparent;
+  background: linear-gradient(135deg, #ff4444, #ff0066) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.error-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border-top: 4px solid #ff4444;
+  border-right: 4px solid #ff4444;
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+  z-index: 10;
+}
+
+.error-header {
+  background: rgba(255, 68, 68, 0.15);
+  border-bottom: 2px solid rgba(255, 68, 68, 0.4);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-icon-large {
+  width: 80px;
+  height: 80px;
+  color: #ff4444;
+  filter: drop-shadow(0 0 20px #ff4444);
+  animation: errorIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes errorIconPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 20px #ff4444);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 30px #ff4444);
+  }
+}
+
+.error-title {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(180deg, #ff6666, #ff4444);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(255, 68, 68, 0.6));
+  text-transform: uppercase;
+}
+
+.error-body {
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.error-code {
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
+  font-size: 1.1rem;
+  color: #ffaa00;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 170, 0, 0.1);
+  border: 1px solid rgba(255, 170, 0, 0.3);
+  border-left: 4px solid #ffaa00;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  letter-spacing: 2px;
+}
+
+.code-value {
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 10px rgba(255, 204, 0, 0.6);
+}
+
+.error-message-box,
+.error-details-box {
+  background: rgba(255, 68, 68, 0.05);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  border-left: 4px solid #ff4444;
+  padding: 1.5rem;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+}
+
+.message-label,
+.details-label {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 0.85rem;
+  color: #ff8888;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+}
+
+.message-text,
+.details-text {
+  font-family: 'Orbitron', 'Chakra Petch', monospace;
+  font-size: 1.1rem;
+  color: #ffcccc;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.error-footer {
+  padding: 2rem;
+  border-top: 1px solid rgba(255, 68, 68, 0.2);
+  display: flex;
+  justify-content: center;
+}
+
+.retry-button {
+  padding: 1.2rem 2.5rem;
+  background: transparent;
+  border: 2px solid #ff4444;
+  color: #ff4444;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.retry-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 0, 102, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.retry-button:hover {
+  background: rgba(255, 68, 68, 0.1);
+  box-shadow:
+    0 0 30px rgba(255, 68, 68, 0.5),
+    inset 0 0 30px rgba(255, 68, 68, 0.1);
+  transform: translateY(-2px);
+  border-color: #ff6666;
+}
+
+.retry-button:hover::before {
+  opacity: 1;
+}
+
+.retry-button:active {
+  transform: translateY(0);
+}
+
+.retry-icon {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 8px currentColor);
+  animation: retryRotate 2s linear infinite;
+}
+
+@keyframes retryRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.retry-button:hover .retry-icon {
+  animation: retryRotate 1s linear infinite;
+}

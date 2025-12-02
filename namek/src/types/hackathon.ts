@@ -22,3 +22,18 @@ export interface SubmitResponse {
   score: number
   results: QuestionResult[]
 }
+
+export interface ApiError {
+  status?: string
+  error?: string
+  message?: string
+  detail?: string
+  details?: string
+}
+
+export interface ErrorState {
+  hasError: boolean
+  errorCode?: number
+  errorMessage?: string
+  errorDetails?: string
+}
