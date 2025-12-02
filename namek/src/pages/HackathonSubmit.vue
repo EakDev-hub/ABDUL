@@ -318,11 +318,8 @@ async function handleSubmit() {
 
     hackathonStore.setError(errorMessage, statusCode, errorDetails)
 
-    // ถ้า error แสดงทันทีเลย ไม่ต้องรอเวลา
-    // Stop animation immediately
-    stopAnimation()
-
-    // Hide loading immediately
+    // ถ้า error แสดงทันทีเลย ไม่ต้องรอเวลาและไม่ต้อง stop animation gracefully
+    // Hide loading immediately without stopping animation (just hide it)
     showTerminal.value = false
     hackathonStore.setLoading(false)
 
