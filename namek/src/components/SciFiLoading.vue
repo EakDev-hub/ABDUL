@@ -22,6 +22,13 @@
 
         <!-- Progress Arc -->
         <svg class="progress-arc" viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="pinkBlueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FA4786;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#B84FD1;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#6B8CFF;stop-opacity:1" />
+            </linearGradient>
+          </defs>
           <circle cx="100" cy="100" r="85" class="arc-bg"/>
           <circle cx="100" cy="100" r="85" class="arc-progress"/>
         </svg>
@@ -185,7 +192,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #000205;
+  background: linear-gradient(135deg, #0a0015 0%, #1a0520 50%, #000510 100%);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -200,7 +207,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 50%, #001a33 0%, #000205 100%);
+  background: radial-gradient(circle at 50% 50%, #2a0a3a 0%, #0a0015 100%);
   z-index: 0;
 }
 
@@ -211,8 +218,8 @@ onUnmounted(() => {
   width: 200%;
   height: 200%;
   background-image:
-    linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(250, 71, 134, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 140, 255, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
   transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
   animation: gridMove 20s linear infinite;
@@ -241,9 +248,9 @@ onUnmounted(() => {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: #00f3ff;
+  background: #FA4786;
   border-radius: 50%;
-  box-shadow: 0 0 10px #00f3ff;
+  box-shadow: 0 0 10px #FA4786, 0 0 20px rgba(250, 71, 134, 0.5);
   animation: particleFloat linear infinite;
   opacity: 0.6;
 }
@@ -281,8 +288,8 @@ onUnmounted(() => {
   position: absolute;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
-  box-shadow: 0 0 10px #00f3ff;
+  background: linear-gradient(90deg, transparent, #FA4786, #6B8CFF, transparent);
+  box-shadow: 0 0 10px #FA4786, 0 0 15px rgba(107, 140, 255, 0.5);
   opacity: 0.3;
   animation: holoScan 8s linear infinite;
 }
@@ -324,7 +331,7 @@ onUnmounted(() => {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(0, 50, 100, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(250, 71, 134, 0.2) 0%, rgba(107, 140, 255, 0.1) 50%, transparent 70%);
   animation: pulse 3s ease-in-out infinite;
 }
 
@@ -346,7 +353,7 @@ onUnmounted(() => {
 .hud-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(0, 243, 255, 0.3);
+  border: 2px solid rgba(250, 71, 134, 0.4);
 }
 
 .ring-1 {
@@ -366,7 +373,7 @@ onUnmounted(() => {
   width: 70%;
   height: 70%;
   animation: rotate 20s linear infinite;
-  border-color: rgba(0, 243, 255, 0.2);
+  border-color: rgba(107, 140, 255, 0.3);
 }
 
 @keyframes rotate {
@@ -384,18 +391,18 @@ onUnmounted(() => {
 
 .arc-bg {
   fill: none;
-  stroke: rgba(0, 243, 255, 0.1);
+  stroke: rgba(250, 71, 134, 0.15);
   stroke-width: 3;
 }
 
 .arc-progress {
   fill: none;
-  stroke: #00f3ff;
+  stroke: url(#pinkBlueGradient);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 200 534;
   stroke-dashoffset: 0;
-  filter: drop-shadow(0 0 10px #00f3ff);
+  filter: drop-shadow(0 0 10px #FA4786) drop-shadow(0 0 15px rgba(107, 140, 255, 0.5));
   animation: arcFlow 3s linear infinite;
 }
 
@@ -418,7 +425,7 @@ onUnmounted(() => {
   width: 180px;
   height: 120px;
   background: rgba(0, 10, 30, 0.9);
-  border: 2px solid #00f3ff;
+  border: 2px solid #FA4786;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -426,15 +433,15 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.5rem;
   clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.3), inset 0 0 30px rgba(0, 243, 255, 0.1);
+  box-shadow: 0 0 30px rgba(250, 71, 134, 0.4), 0 0 20px rgba(107, 140, 255, 0.3), inset 0 0 30px rgba(250, 71, 134, 0.1);
 }
 
 .frame-corner {
   position: absolute;
   width: 15px;
   height: 15px;
-  border: 2px solid #ffff00;
-  box-shadow: 0 0 10px #ffff00;
+  border: 2px solid #6B8CFF;
+  box-shadow: 0 0 10px #6B8CFF, 0 0 15px rgba(107, 140, 255, 0.5);
 }
 
 .frame-corner.tl {
@@ -468,7 +475,7 @@ onUnmounted(() => {
 .status-text {
   font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 0.7rem;
-  color: #aaddff;
+  color: #FFB3D1;
   letter-spacing: 1px;
   text-align: center;
 }
@@ -494,13 +501,13 @@ onUnmounted(() => {
 .indicator-bar {
   width: 25px;
   height: 4px;
-  background: rgba(0, 243, 255, 0.2);
+  background: rgba(250, 71, 134, 0.2);
   transition: all 0.3s ease;
 }
 
 .indicator-bar.active {
-  background: #ffff00;
-  box-shadow: 0 0 10px #ffff00;
+  background: linear-gradient(135deg, #FA4786, #6B8CFF);
+  box-shadow: 0 0 10px #FA4786, 0 0 15px rgba(107, 140, 255, 0.5);
 }
 
 /* Bottom Stats */
@@ -521,7 +528,7 @@ onUnmounted(() => {
 .stat-label {
   font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 0.65rem;
-  color: #aaddff;
+  color: #FFB3D1;
   letter-spacing: 1px;
 }
 
@@ -533,12 +540,12 @@ onUnmounted(() => {
 .stat-bar {
   width: 4px;
   height: 20px;
-  background: rgba(0, 243, 255, 0.2);
+  background: rgba(250, 71, 134, 0.2);
 }
 
 .stat-bar.active {
-  background: #ffff00;
-  box-shadow: 0 0 8px #ffff00;
+  background: linear-gradient(135deg, #FA4786, #6B8CFF);
+  box-shadow: 0 0 8px #FA4786, 0 0 12px rgba(107, 140, 255, 0.5);
   animation: barPulse 1s ease-in-out infinite;
 }
 
@@ -552,9 +559,9 @@ onUnmounted(() => {
   position: absolute;
   width: 12px;
   height: 12px;
-  background: #00f3ff;
+  background: radial-gradient(circle, #FA4786, #6B8CFF);
   border-radius: 50%;
-  box-shadow: 0 0 15px #00f3ff;
+  box-shadow: 0 0 15px #FA4786, 0 0 20px rgba(107, 140, 255, 0.5);
 }
 
 .dot-1 {
@@ -584,7 +591,7 @@ onUnmounted(() => {
   position: absolute;
   width: 80px;
   height: 80px;
-  border: 2px solid rgba(0, 243, 255, 0.3);
+  border: 2px solid rgba(250, 71, 134, 0.3);
 }
 
 .corner-deco.top-left {

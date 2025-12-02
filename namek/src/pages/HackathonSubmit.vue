@@ -333,10 +333,11 @@ async function handleSubmit() {
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap');
 
 :root {
-  --primary-cyan: #00f3ff;
-  --deep-blue: #000a1f;
-  --glass-bg: rgba(0, 20, 40, 0.7);
-  --neon-glow: 0 0 10px rgba(0, 243, 255, 0.5);
+  --primary-pink: #FA4786;
+  --primary-purple: #B84FD1;
+  --deep-blue: #0a0a1f;
+  --glass-bg: rgba(20, 0, 20, 0.7);
+  --neon-glow: 0 0 10px rgba(250, 71, 134, 0.5);
 }
 
 .hackathon-container {
@@ -350,7 +351,7 @@ async function handleSubmit() {
   overflow: hidden;
   background: #000205;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  color: #00f3ff;
+  color: #FA4786;
 }
 
 /* Animated Background */
@@ -360,7 +361,7 @@ async function handleSubmit() {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 50%, #001a33 0%, #000205 100%);
+  background: radial-gradient(circle at 50% 50%, #2a0a3a 0%, #0a0015 100%);
   z-index: 0;
 }
 
@@ -371,8 +372,8 @@ async function handleSubmit() {
   width: 200%;
   height: 200%;
   background-image:
-    linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(250, 71, 134, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 140, 255, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
   transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
   animation: gridMove 20s linear infinite;
@@ -401,9 +402,9 @@ async function handleSubmit() {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: #00f3ff;
+  background: #FA4786;
   border-radius: 50%;
-  box-shadow: 0 0 10px #00f3ff;
+  box-shadow: 0 0 10px #FA4786;
   animation: particleFloat linear infinite;
   opacity: 0.6;
 }
@@ -441,8 +442,8 @@ async function handleSubmit() {
   position: absolute;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
-  box-shadow: 0 0 10px #00f3ff;
+  background: linear-gradient(90deg, transparent, #FA4786, #6B8CFF, transparent);
+  box-shadow: 0 0 10px #FA4786, 0 0 15px rgba(107, 140, 255, 0.5);
   opacity: 0.3;
   animation: holoScan 8s linear infinite;
 }
@@ -497,11 +498,11 @@ async function handleSubmit() {
   letter-spacing: 3px;
   margin-bottom: 0.3rem;
   text-transform: uppercase;
-  background: linear-gradient(180deg, #fff, #00f3ff);
+  background: linear-gradient(180deg, #fff, #FA4786);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6));
+  filter: drop-shadow(0 0 15px rgba(250, 71, 134, 0.6));
 }
 
 .subtitle-wrapper {
@@ -514,13 +515,13 @@ async function handleSubmit() {
 .tech-line {
   height: 1px;
   width: 50px;
-  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+  background: linear-gradient(90deg, transparent, #FA4786, transparent);
 }
 
 .subtitle {
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 0.9rem;
-  color: #aaddff;
+  color: #FFB3D1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -533,7 +534,7 @@ async function handleSubmit() {
   gap: 0.4rem;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
-  color: #00f3ff;
+  color: #FA4786;
   font-size: 0.85rem;
   letter-spacing: 1.5px;
 }
@@ -541,7 +542,7 @@ async function handleSubmit() {
 .ai-icon {
   width: 16px;
   height: 16px;
-  filter: drop-shadow(0 0 5px #00f3ff);
+  filter: drop-shadow(0 0 5px #FA4786);
 }
 
 .subtitle-text {
@@ -572,8 +573,8 @@ async function handleSubmit() {
 }
 
 .hud-panel {
-  background: rgba(0, 10, 20, 0.85);
-  border: 1px solid rgba(0, 243, 255, 0.3);
+  background: rgba(10, 0, 10, 0.85);
+  border: 1px solid rgba(250, 71, 134, 0.3);
   padding: 2rem 2.5rem;
   position: relative;
   backdrop-filter: blur(15px);
@@ -583,21 +584,21 @@ async function handleSubmit() {
     0 100%, 0 25px
   );
   box-shadow:
-    0 0 40px rgba(0, 243, 255, 0.15),
-    inset 0 0 80px rgba(0, 243, 255, 0.03);
+    0 0 40px rgba(250, 71, 134, 0.15),
+    inset 0 0 80px rgba(250, 71, 134, 0.03);
   animation: panelGlow 3s ease-in-out infinite;
 }
 
 @keyframes panelGlow {
   0%, 100% {
     box-shadow:
-      0 0 40px rgba(0, 243, 255, 0.15),
-      inset 0 0 80px rgba(0, 243, 255, 0.03);
+      0 0 40px rgba(250, 71, 134, 0.15),
+      inset 0 0 80px rgba(250, 71, 134, 0.03);
   }
   50% {
     box-shadow:
-      0 0 60px rgba(0, 243, 255, 0.25),
-      inset 0 0 100px rgba(0, 243, 255, 0.05);
+      0 0 60px rgba(250, 71, 134, 0.25),
+      inset 0 0 100px rgba(250, 71, 134, 0.05);
   }
 }
 
@@ -609,7 +610,7 @@ async function handleSubmit() {
   right: 0;
   bottom: 0;
   border: 2px solid transparent;
-  background: linear-gradient(135deg, #00f3ff, #b000ff) border-box;
+  background: linear-gradient(135deg, #FA4786, #B84FD1, #6B8CFF) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -621,9 +622,9 @@ async function handleSubmit() {
   position: absolute;
   width: 25px;
   height: 25px;
-  border: 3px solid #00f3ff;
+  border: 3px solid #FA4786;
   z-index: 10;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
+  box-shadow: 0 0 15px rgba(250, 71, 134, 0.6), 0 0 10px rgba(107, 140, 255, 0.3);
   animation: cornerPulse 2s ease-in-out infinite;
 }
 
@@ -679,9 +680,9 @@ async function handleSubmit() {
   top: 50%;
   width: 10px;
   height: 10px;
-  background: #00f3ff;
+  background: #FA4786;
   transform: translateY(-50%) rotate(45deg);
-  box-shadow: 0 0 15px #00f3ff;
+  box-shadow: 0 0 15px #FA4786;
 }
 
 .field-error {
@@ -751,17 +752,17 @@ async function handleSubmit() {
 .panel-label {
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 0.85rem;
-  color: #00f3ff;
+  color: #FA4786;
   letter-spacing: 1.5px;
-  text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.5);
   white-space: nowrap;
 }
 
 .panel-line {
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, #00f3ff, transparent);
-  box-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+  background: linear-gradient(90deg, #FA4786, #B84FD1, #6B8CFF, transparent);
+  box-shadow: 0 0 5px rgba(250, 71, 134, 0.5), 0 0 8px rgba(107, 140, 255, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -791,7 +792,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #aaddff;
+  color: #FFB3D1;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 600;
   font-size: 0.9rem;
@@ -809,16 +810,16 @@ async function handleSubmit() {
   top: 50%;
   width: 4px;
   height: 60%;
-  background: #00f3ff;
+  background: #FA4786;
   transform: translateY(-50%);
-  box-shadow: 0 0 10px #00f3ff;
+  box-shadow: 0 0 10px #FA4786;
 }
 
 .label-icon {
   width: 18px;
   height: 18px;
-  color: #00f3ff;
-  filter: drop-shadow(0 0 5px #00f3ff);
+  color: #FA4786;
+  filter: drop-shadow(0 0 5px #FA4786);
   animation: iconFloat 2s ease-in-out infinite;
 }
 
@@ -834,9 +835,9 @@ async function handleSubmit() {
 .cyber-input {
   width: 100%;
   padding: 1.1rem 1.5rem;
-  background: rgba(0, 20, 40, 0.5);
+  background: rgba(20, 0, 20, 0.5);
   border: none;
-  border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+  border-bottom: 2px solid rgba(250, 71, 134, 0.2);
   color: #fff;
   font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 1.1rem;
@@ -847,19 +848,19 @@ async function handleSubmit() {
 
 .cyber-input:focus {
   outline: none;
-  background: rgba(0, 30, 60, 0.7);
+  background: rgba(30, 0, 30, 0.7);
   border-bottom-color: transparent;
   padding-left: 2rem;
   box-shadow:
-    inset 0 0 20px rgba(0, 243, 255, 0.1),
-    0 0 20px rgba(0, 243, 255, 0.2);
+    inset 0 0 20px rgba(250, 71, 134, 0.1),
+    0 0 20px rgba(250, 71, 134, 0.2);
 }
 
 .cyber-input:focus::before {
   content: '>';
   position: absolute;
   left: 1rem;
-  color: #00f3ff;
+  color: #FA4786;
   animation: cursorBlink 1s infinite;
 }
 
@@ -869,9 +870,9 @@ async function handleSubmit() {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #00f3ff, #b000ff);
+  background: linear-gradient(90deg, #FA4786, #B84FD1, #6B8CFF);
   transition: width 0.4s ease;
-  box-shadow: 0 0 15px #00f3ff;
+  box-shadow: 0 0 15px #FA4786, 0 0 10px rgba(107, 140, 255, 0.5);
 }
 
 .cyber-input:focus + .input-border {
@@ -879,7 +880,7 @@ async function handleSubmit() {
 }
 
 .cyber-input::placeholder {
-  color: rgba(0, 243, 255, 0.25);
+  color: rgba(250, 71, 134, 0.25);
   letter-spacing: 1px;
 }
 
@@ -893,8 +894,8 @@ async function handleSubmit() {
   width: 100%;
   padding: 1.2rem;
   background: transparent;
-  border: 2px solid #00f3ff;
-  color: #00f3ff;
+  border: 2px solid #FA4786;
+  color: #FA4786;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
@@ -915,7 +916,7 @@ async function handleSubmit() {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(176, 0, 255, 0.1));
+  background: linear-gradient(135deg, rgba(250, 71, 134, 0.1), rgba(184, 79, 209, 0.1), rgba(107, 140, 255, 0.08));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -928,7 +929,7 @@ async function handleSubmit() {
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(0, 243, 255, 0.3);
+  background: rgba(250, 71, 134, 0.3);
   transform: translate(-50%, -50%);
   transition: width 0.5s ease, height 0.5s ease;
 }
@@ -950,10 +951,10 @@ async function handleSubmit() {
 }
 
 .cyber-button:hover:not(:disabled) {
-  background: rgba(0, 243, 255, 0.05);
+  background: rgba(250, 71, 134, 0.05);
   box-shadow:
-    0 0 30px rgba(0, 243, 255, 0.5),
-    inset 0 0 30px rgba(0, 243, 255, 0.1);
+    0 0 30px rgba(250, 71, 134, 0.5),
+    inset 0 0 30px rgba(250, 71, 134, 0.1);
   letter-spacing: 3px;
   transform: translateY(-2px);
 }
@@ -961,8 +962,8 @@ async function handleSubmit() {
 .cyber-button:active:not(:disabled) {
   transform: translateY(0);
   box-shadow:
-    0 0 20px rgba(0, 243, 255, 0.3),
-    inset 0 0 20px rgba(0, 243, 255, 0.2);
+    0 0 20px rgba(250, 71, 134, 0.3),
+    inset 0 0 20px rgba(250, 71, 134, 0.2);
 }
 
 .button-content {
