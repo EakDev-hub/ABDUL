@@ -88,17 +88,12 @@ export const hackathonService = {
       console.log('✅ API Response received:', response.data)
       return response.data
 
-    } catch (error) {
-      console.error('❌ API call failed, falling back to mock data:', error)
+    } catch (error: any) {
+      console.error('❌ API call failed:', error)
 
-      // Fallback ไปใช้ mock data ถ้า API พัง
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      console.log('📦 Using mock data as fallback')
-      return {
-        ...mockResponse,
-        uuid: `MOCK-${data.team}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      }
+      // ส่ง error ต่อไปให้ component จัดการ
+      // ไม่ fallback ไปใช้ mock data อีกต่อไป
+      throw error
     }
   }
 }

@@ -4,7 +4,7 @@ import { useEnvStore } from '@/store/global/env'
 
 // สร้าง axios instance สำหรับเชื่อมต่อ API Gateway
 const apiClient: AxiosInstance = axios.create({
-  timeout: 10000,
+  timeout: 600000, // 10 minutes (600 seconds)
   headers: {
     'Content-Type': 'application/json'
   }
