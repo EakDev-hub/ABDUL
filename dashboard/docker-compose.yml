@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  prod:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: vue-docker-prod
+    ports:
+      - "80:80"
+    networks:
+      - vue-network
+    restart: unless-stopped
+
+networks:
+  vue-network:
+    driver: bridge
