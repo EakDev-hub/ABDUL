@@ -27,6 +27,16 @@
     <!-- Main Content -->
     <div v-if="showTerminal" class="terminal-blocker"></div>
     <div class="main-content">
+      <!-- TURBO Title -->
+      <div class="turbo-title-container">
+        <h1 class="turbo-title">
+          <span class="turbo-text" data-text="TURBO">
+            TURBO
+            <span class="grunge-overlay"></span>
+          </span>
+        </h1>
+      </div>
+
       <!-- Header -->
       <div class="header-section">
         <h1 class="main-title">
@@ -171,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHackathonStore } from '@/store/hackathon.store'
 import { hackathonService } from '@/services/hackathon.service'
@@ -217,6 +227,25 @@ const animationStopRequested = ref(false)
 
 const isLoading = computed(() => hackathonStore.isLoading)
 const error = computed(() => hackathonStore.error)
+
+// Watch for changes in form fields and clear their errors
+watch(() => formData.value.team, (newValue) => {
+  if (newValue && errors.value.team) {
+    errors.value.team = ''
+  }
+})
+
+watch(() => formData.value.passKey, (newValue) => {
+  if (newValue && errors.value.passKey) {
+    errors.value.passKey = ''
+  }
+})
+
+watch(() => formData.value.apiUrl, (newValue) => {
+  if (newValue && errors.value.apiUrl) {
+    errors.value.apiUrl = ''
+  }
+})
 
 function stopAnimation() {
   animationStopRequested.value = true
@@ -333,10 +362,11 @@ async function handleSubmit() {
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap');
 
 :root {
-  --primary-cyan: #00f3ff;
-  --deep-blue: #000a1f;
-  --glass-bg: rgba(0, 20, 40, 0.7);
-  --neon-glow: 0 0 10px rgba(0, 243, 255, 0.5);
+  --primary-pink: #FA4786;
+  --primary-purple: #002D72;
+  --deep-blue: #0a0a1f;
+  --glass-bg: rgba(20, 0, 20, 0.7);
+  --neon-glow: 0 0 10px rgba(250, 71, 134, 0.5);
 }
 
 .hackathon-container {
@@ -350,7 +380,7 @@ async function handleSubmit() {
   overflow: hidden;
   background: #000205;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  color: #00f3ff;
+  color: #FA4786;
 }
 
 /* Animated Background */
@@ -360,7 +390,7 @@ async function handleSubmit() {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 50%, #001a33 0%, #000205 100%);
+  background: radial-gradient(circle at 50% 50%, #2a0a3a 0%, #0a0015 100%);
   z-index: 0;
 }
 
@@ -371,8 +401,8 @@ async function handleSubmit() {
   width: 200%;
   height: 200%;
   background-image:
-    linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(250, 71, 134, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 140, 255, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
   transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
   animation: gridMove 20s linear infinite;
@@ -401,9 +431,9 @@ async function handleSubmit() {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: #00f3ff;
+  background: #FA4786;
   border-radius: 50%;
-  box-shadow: 0 0 10px #00f3ff;
+  box-shadow: 0 0 10px #FA4786;
   animation: particleFloat linear infinite;
   opacity: 0.6;
 }
@@ -441,8 +471,8 @@ async function handleSubmit() {
   position: absolute;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
-  box-shadow: 0 0 10px #00f3ff;
+  background: linear-gradient(90deg, transparent, #FA4786, #6B8CFF, transparent);
+  box-shadow: 0 0 10px #FA4786, 0 0 15px rgba(107, 140, 255, 0.5);
   opacity: 0.3;
   animation: holoScan 8s linear infinite;
 }
@@ -480,8 +510,159 @@ async function handleSubmit() {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  gap: 1rem;
+  gap: 0.5rem;
 }
+
+/* TURBO Title */
+.turbo-title-container {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  animation: turboSlideDown 1s ease-out;
+}
+
+@keyframes turboSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turbo-title {
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: 15px;
+  margin: 0;
+  text-transform: uppercase;
+  position: relative;
+  display: inline-block;
+}
+
+.turbo-text {
+  position: relative;
+  display: inline-block;
+  color: #ffffff;
+}
+
+.grunge-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 5% 10%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 8% 18%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 12% 28%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 15% 35%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 17% 42%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 20% 50%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 22% 58%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 25% 65%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 27% 72%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 30% 80%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 32% 88%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 35% 15%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 37% 22%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 40% 30%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 42% 38%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 45% 45%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 47% 52%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 50% 60%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 52% 68%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 55% 75%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 57% 82%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 60% 25%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 62% 32%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 65% 40%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 67% 48%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 70% 55%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 72% 62%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 75% 70%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 77% 78%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 80% 85%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 82% 92%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 85% 10%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 87% 18%, rgba(0,0,0,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 90% 30%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 92% 38%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 95% 50%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 97% 58%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 12% 70%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 14% 78%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 18% 90%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 22% 10%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 24% 18%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 28% 25%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 32% 40%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 34% 48%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 38% 55%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 42% 70%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 44% 78%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 48% 85%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 52% 15%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 54% 22%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 58% 35%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 62% 50%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 64% 58%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 68% 65%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 72% 80%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 74% 88%, rgba(0,0,0,0.7) 2px, transparent 2px),
+    radial-gradient(circle at 78% 20%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 82% 40%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 84% 48%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 88% 60%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 92% 75%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 94% 82%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 8% 45%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 14% 60%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 16% 68%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 26% 75%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 34% 90%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 36% 95%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 44% 5%, rgba(0,0,0,0.9) 2px, transparent 2px),
+    radial-gradient(circle at 46% 12%, rgba(0,0,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle at 56% 8%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 66% 12%, rgba(0,0,0,0.9) 1px, transparent 1px),
+    radial-gradient(circle at 76% 5%, rgba(0,0,0,0.8) 2px, transparent 2px),
+    radial-gradient(circle at 86% 8%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 96% 15%, rgba(0,0,0,0.9) 1px, transparent 1px);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: multiply;
+}
+
+.turbo-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 100%;
+  height: 100%;
+  color: rgba(250, 71, 134, 0.6);
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.turbo-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 100%;
+  height: 100%;
+  color: rgba(107, 140, 255, 0.6);
+  z-index: -2;
+  filter: blur(2px);
+}
+
 
 /* Header */
 .header-section {
@@ -497,11 +678,11 @@ async function handleSubmit() {
   letter-spacing: 3px;
   margin-bottom: 0.3rem;
   text-transform: uppercase;
-  background: linear-gradient(180deg, #fff, #00f3ff);
+  background: linear-gradient(180deg, #fff, #FA4786);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6));
+  filter: drop-shadow(0 0 15px rgba(250, 71, 134, 0.6));
 }
 
 .subtitle-wrapper {
@@ -514,13 +695,13 @@ async function handleSubmit() {
 .tech-line {
   height: 1px;
   width: 50px;
-  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+  background: linear-gradient(90deg, transparent, #FA4786, transparent);
 }
 
 .subtitle {
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 0.9rem;
-  color: #aaddff;
+  color: #FFB3D1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -533,7 +714,7 @@ async function handleSubmit() {
   gap: 0.4rem;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
-  color: #00f3ff;
+  color: #FA4786;
   font-size: 0.85rem;
   letter-spacing: 1.5px;
 }
@@ -541,7 +722,7 @@ async function handleSubmit() {
 .ai-icon {
   width: 16px;
   height: 16px;
-  filter: drop-shadow(0 0 5px #00f3ff);
+  filter: drop-shadow(0 0 5px #FA4786);
 }
 
 .subtitle-text {
@@ -572,8 +753,8 @@ async function handleSubmit() {
 }
 
 .hud-panel {
-  background: rgba(0, 10, 20, 0.85);
-  border: 1px solid rgba(0, 243, 255, 0.3);
+  background: rgba(10, 0, 10, 0.85);
+  border: 1px solid rgba(250, 71, 134, 0.3);
   padding: 2rem 2.5rem;
   position: relative;
   backdrop-filter: blur(15px);
@@ -583,21 +764,21 @@ async function handleSubmit() {
     0 100%, 0 25px
   );
   box-shadow:
-    0 0 40px rgba(0, 243, 255, 0.15),
-    inset 0 0 80px rgba(0, 243, 255, 0.03);
+    0 0 40px rgba(250, 71, 134, 0.15),
+    inset 0 0 80px rgba(250, 71, 134, 0.03);
   animation: panelGlow 3s ease-in-out infinite;
 }
 
 @keyframes panelGlow {
   0%, 100% {
     box-shadow:
-      0 0 40px rgba(0, 243, 255, 0.15),
-      inset 0 0 80px rgba(0, 243, 255, 0.03);
+      0 0 40px rgba(250, 71, 134, 0.15),
+      inset 0 0 80px rgba(250, 71, 134, 0.03);
   }
   50% {
     box-shadow:
-      0 0 60px rgba(0, 243, 255, 0.25),
-      inset 0 0 100px rgba(0, 243, 255, 0.05);
+      0 0 60px rgba(250, 71, 134, 0.25),
+      inset 0 0 100px rgba(250, 71, 134, 0.05);
   }
 }
 
@@ -609,7 +790,7 @@ async function handleSubmit() {
   right: 0;
   bottom: 0;
   border: 2px solid transparent;
-  background: linear-gradient(135deg, #00f3ff, #b000ff) border-box;
+  background: linear-gradient(135deg, #FA4786, #002D72, #6B8CFF) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -621,9 +802,9 @@ async function handleSubmit() {
   position: absolute;
   width: 25px;
   height: 25px;
-  border: 3px solid #00f3ff;
+  border: 3px solid #FA4786;
   z-index: 10;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
+  box-shadow: 0 0 15px rgba(250, 71, 134, 0.6), 0 0 10px rgba(107, 140, 255, 0.3);
   animation: cornerPulse 2s ease-in-out infinite;
 }
 
@@ -679,9 +860,9 @@ async function handleSubmit() {
   top: 50%;
   width: 10px;
   height: 10px;
-  background: #00f3ff;
+  background: #FA4786;
   transform: translateY(-50%) rotate(45deg);
-  box-shadow: 0 0 15px #00f3ff;
+  box-shadow: 0 0 15px #FA4786;
 }
 
 .field-error {
@@ -751,17 +932,17 @@ async function handleSubmit() {
 .panel-label {
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-size: 0.85rem;
-  color: #00f3ff;
+  color: #FA4786;
   letter-spacing: 1.5px;
-  text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+  text-shadow: 0 0 10px rgba(250, 71, 134, 0.5);
   white-space: nowrap;
 }
 
 .panel-line {
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, #00f3ff, transparent);
-  box-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+  background: linear-gradient(90deg, #FA4786, #002D72, #6B8CFF, transparent);
+  box-shadow: 0 0 5px rgba(250, 71, 134, 0.5), 0 0 8px rgba(107, 140, 255, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -791,7 +972,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #aaddff;
+  color: #FFB3D1;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 600;
   font-size: 0.9rem;
@@ -809,16 +990,16 @@ async function handleSubmit() {
   top: 50%;
   width: 4px;
   height: 60%;
-  background: #00f3ff;
+  background: #FA4786;
   transform: translateY(-50%);
-  box-shadow: 0 0 10px #00f3ff;
+  box-shadow: 0 0 10px #FA4786;
 }
 
 .label-icon {
   width: 18px;
   height: 18px;
-  color: #00f3ff;
-  filter: drop-shadow(0 0 5px #00f3ff);
+  color: #FA4786;
+  filter: drop-shadow(0 0 5px #FA4786);
   animation: iconFloat 2s ease-in-out infinite;
 }
 
@@ -834,9 +1015,9 @@ async function handleSubmit() {
 .cyber-input {
   width: 100%;
   padding: 1.1rem 1.5rem;
-  background: rgba(0, 20, 40, 0.5);
+  background: rgba(20, 0, 20, 0.5);
   border: none;
-  border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+  border-bottom: 2px solid rgba(250, 71, 134, 0.2);
   color: #fff;
   font-family: 'Orbitron', 'Chakra Petch', monospace;
   font-size: 1.1rem;
@@ -847,19 +1028,19 @@ async function handleSubmit() {
 
 .cyber-input:focus {
   outline: none;
-  background: rgba(0, 30, 60, 0.7);
+  background: rgba(30, 0, 30, 0.7);
   border-bottom-color: transparent;
   padding-left: 2rem;
   box-shadow:
-    inset 0 0 20px rgba(0, 243, 255, 0.1),
-    0 0 20px rgba(0, 243, 255, 0.2);
+    inset 0 0 20px rgba(250, 71, 134, 0.1),
+    0 0 20px rgba(250, 71, 134, 0.2);
 }
 
 .cyber-input:focus::before {
   content: '>';
   position: absolute;
   left: 1rem;
-  color: #00f3ff;
+  color: #FA4786;
   animation: cursorBlink 1s infinite;
 }
 
@@ -869,9 +1050,9 @@ async function handleSubmit() {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #00f3ff, #b000ff);
+  background: linear-gradient(90deg, #FA4786, #002D72, #6B8CFF);
   transition: width 0.4s ease;
-  box-shadow: 0 0 15px #00f3ff;
+  box-shadow: 0 0 15px #FA4786, 0 0 10px rgba(107, 140, 255, 0.5);
 }
 
 .cyber-input:focus + .input-border {
@@ -879,7 +1060,7 @@ async function handleSubmit() {
 }
 
 .cyber-input::placeholder {
-  color: rgba(0, 243, 255, 0.25);
+  color: rgba(250, 71, 134, 0.25);
   letter-spacing: 1px;
 }
 
@@ -892,9 +1073,10 @@ async function handleSubmit() {
 .cyber-button {
   width: 100%;
   padding: 1.2rem;
-  background: transparent;
-  border: 2px solid #00f3ff;
-  color: #00f3ff;
+  background: linear-gradient(135deg, rgba(0, 10, 30, 0.7) 0%, rgba(10, 5, 40, 0.75) 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  color: #FFB3D1;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
@@ -906,63 +1088,95 @@ async function handleSubmit() {
   margin-top: 1rem;
   letter-spacing: 2px;
   text-transform: uppercase;
+  box-shadow:
+    0 0 20px rgba(250, 71, 134, 0.25),
+    0 0 30px rgba(107, 140, 255, 0.15),
+    inset 0 0 20px rgba(250, 71, 134, 0.08),
+    inset 0 0 30px rgba(107, 140, 255, 0.05);
+  animation: buttonGlow 3s ease-in-out infinite;
 }
 
 .cyber-button::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(176, 0, 255, 0.1));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  inset: -2px;
+  background: linear-gradient(135deg, #FA4786 0%, #002D72 50%, #6B8CFF 100%);
+  border-radius: inherit;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  z-index: -1;
+  opacity: 0.5;
+  animation: borderFlow 4s linear infinite;
 }
 
 .cyber-button::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(0, 243, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.5s ease, height 0.5s ease;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(250, 71, 134, 0.05) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(107, 140, 255, 0.05) 100%);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes buttonGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(250, 71, 134, 0.25),
+      0 0 30px rgba(107, 140, 255, 0.15),
+      inset 0 0 20px rgba(250, 71, 134, 0.08),
+      inset 0 0 30px rgba(107, 140, 255, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(250, 71, 134, 0.35),
+      0 0 40px rgba(107, 140, 255, 0.25),
+      inset 0 0 25px rgba(250, 71, 134, 0.12),
+      inset 0 0 35px rgba(107, 140, 255, 0.08);
+  }
 }
 
 .cyber-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  border-color: #444;
-  color: #444;
+  animation: none;
+  box-shadow: none;
 }
 
-.cyber-button:hover:not(:disabled)::before {
-  opacity: 1;
+.cyber-button:disabled::before {
+  animation: none;
+  background: #444;
+  opacity: 0.3;
 }
 
-.cyber-button:hover:not(:disabled)::after {
-  width: 300px;
-  height: 300px;
+.cyber-button:disabled::after {
+  animation: none;
 }
 
 .cyber-button:hover:not(:disabled) {
-  background: rgba(0, 243, 255, 0.05);
-  box-shadow:
-    0 0 30px rgba(0, 243, 255, 0.5),
-    inset 0 0 30px rgba(0, 243, 255, 0.1);
-  letter-spacing: 3px;
   transform: translateY(-2px);
+  box-shadow:
+    0 0 35px rgba(250, 71, 134, 0.4),
+    0 0 50px rgba(107, 140, 255, 0.3),
+    inset 0 0 30px rgba(250, 71, 134, 0.15),
+    inset 0 0 40px rgba(107, 140, 255, 0.1);
+  letter-spacing: 3px;
+}
+
+.cyber-button:hover:not(:disabled)::before {
+  opacity: 0.7;
 }
 
 .cyber-button:active:not(:disabled) {
   transform: translateY(0);
   box-shadow:
-    0 0 20px rgba(0, 243, 255, 0.3),
-    inset 0 0 20px rgba(0, 243, 255, 0.2);
+    0 0 20px rgba(250, 71, 134, 0.25),
+    0 0 30px rgba(107, 140, 255, 0.15),
+    inset 0 0 20px rgba(250, 71, 134, 0.08),
+    inset 0 0 30px rgba(107, 140, 255, 0.05);
 }
 
 .button-content {
@@ -972,6 +1186,26 @@ async function handleSubmit() {
   gap: 0.8rem;
   position: relative;
   z-index: 2;
+  text-shadow:
+    0 0 8px rgba(255, 179, 209, 0.4),
+    0 0 12px rgba(250, 71, 134, 0.3),
+    0 0 16px rgba(107, 140, 255, 0.2);
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 8px rgba(255, 179, 209, 0.4),
+      0 0 12px rgba(250, 71, 134, 0.3),
+      0 0 16px rgba(107, 140, 255, 0.2);
+  }
+  50% {
+    text-shadow:
+      0 0 10px rgba(255, 179, 209, 0.5),
+      0 0 16px rgba(250, 71, 134, 0.4),
+      0 0 22px rgba(107, 140, 255, 0.3);
+  }
 }
 
 .button-text,
@@ -984,13 +1218,19 @@ async function handleSubmit() {
 .button-icon {
   width: 26px;
   height: 26px;
-  filter: drop-shadow(0 0 5px currentColor);
-  animation: iconPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(250, 71, 134, 0.5)) drop-shadow(0 0 8px rgba(107, 140, 255, 0.3));
+  animation: iconPulse 3s ease-in-out infinite;
 }
 
 @keyframes iconPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(250, 71, 134, 0.5)) drop-shadow(0 0 8px rgba(107, 140, 255, 0.3));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 7px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 10px rgba(107, 140, 255, 0.4));
+  }
 }
 
 .button-glint {
@@ -1077,6 +1317,12 @@ async function handleSubmit() {
   .main-content {
     padding: 1rem;
   }
+
+  .turbo-title {
+    font-size: 2.5rem;
+    letter-spacing: 8px;
+  }
+
   .main-title {
     font-size: 1.8rem;
     letter-spacing: 2px;
