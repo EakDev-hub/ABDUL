@@ -10,31 +10,22 @@
       <div v-for="i in 5" :key="i" class="holo-line"></div>
     </div>
 
-    <!-- Loading Modal - Random between Terminal and Sci-Fi -->
+    <!-- Loading Modal - Sequential (cycles through all loading types) -->
     <transition name="terminal-fade">
-      <TerminalLoading
-        v-if="showTerminal && loadingMode === 'terminal'"
+      <RandomLoading
+        v-if="showTerminal"
         :is-active="showTerminal"
         :stop-requested="animationStopRequested"
-      />
-      <SciFiLoading
-        v-else-if="showTerminal && loadingMode === 'scifi'"
-        :is-active="showTerminal"
-        :stop-requested="animationStopRequested"
+        mode="sequence"
       />
     </transition>
 
     <!-- Main Content -->
     <div v-if="showTerminal" class="terminal-blocker"></div>
     <div class="main-content">
-      <!-- TURBO Title -->
-      <div class="turbo-title-container">
-        <h1 class="turbo-title">
-          <span class="turbo-text" data-text="TURBO">
-            TURBO
-            <span class="grunge-overlay"></span>
-          </span>
-        </h1>
+      <!-- Turbo Logo -->
+      <div class="turbo-logo-container">
+        <img src="/image-turbo.png" alt="Turbo" class="turbo-logo" />
       </div>
 
       <!-- Header -->
@@ -72,50 +63,53 @@
           </div>
 
           <form novalidate @submit.prevent="handleSubmit">
-            <!-- Team Name -->
-            <div class="input-group">
-              <label class="input-label">
-                <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                TEAM IDENTIFIER
-              </label>
-              <div class="input-wrapper">
-                <input
-                  v-model="formData.team"
-                  type="text"
-                  class="cyber-input"
-                  placeholder="ENTER TEAM NAME"
-                  required
-                />
-                <div class="input-border"></div>
+            <!-- Team Name & Pass Key Row -->
+            <div class="input-row">
+              <!-- Team Name -->
+              <div class="input-group">
+                <label class="input-label">
+                  <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  TEAM IDENTIFIER
+                </label>
+                <div class="input-wrapper">
+                  <input
+                    v-model="formData.team"
+                    type="text"
+                    class="cyber-input"
+                    placeholder="ENTER TEAM NAME"
+                    required
+                  />
+                  <div class="input-border"></div>
+                </div>
+                <div v-if="errors.team" class="field-error">{{ errors.team }}</div>
               </div>
-              <div v-if="errors.team" class="field-error">{{ errors.team }}</div>
-            </div>
 
-            <!-- Pass Key -->
-            <div class="input-group">
-              <label class="input-label">
-                <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                ACCESS KEY
-              </label>
-              <div class="input-wrapper">
-                <input
-                  v-model="formData.passKey"
-                  type="text"
-                  class="cyber-input"
-                  placeholder="ENTER PASS KEY"
-                  required
-                />
-                <div class="input-border"></div>
+              <!-- Pass Key -->
+              <div class="input-group">
+                <label class="input-label">
+                  <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  ACCESS KEY
+                </label>
+                <div class="input-wrapper">
+                  <input
+                    v-model="formData.passKey"
+                    type="text"
+                    class="cyber-input"
+                    placeholder="ENTER PASS KEY"
+                    required
+                  />
+                  <div class="input-border"></div>
+                </div>
+                <div v-if="errors.passKey" class="field-error">{{ errors.passKey }}</div>
               </div>
-              <div v-if="errors.passKey" class="field-error">{{ errors.passKey }}</div>
             </div>
 
             <!-- API URL -->
@@ -186,14 +180,13 @@ import { useRouter } from 'vue-router'
 import { useHackathonStore } from '@/store/hackathon.store'
 import { hackathonService } from '@/services/hackathon.service'
 import type { SubmitRequest } from '@/types/hackathon'
-import TerminalLoading from '@/components/TerminalLoading.vue'
-import SciFiLoading from '@/components/SciFiLoading.vue'
+import RandomLoading from '@/components/RandomLoading.vue'
 
 const router = useRouter()
 const hackathonStore = useHackathonStore()
 
-// Loading mode - randomly choose between 'terminal' and 'scifi'
-const loadingMode = ref<'terminal' | 'scifi'>('terminal')
+// Loading mode - sequential (will cycle through all loading types)
+const loadingMode = ref<'sequence'>('sequence')
 
 // Particle animation
 function getParticleStyle(index: number) {
@@ -291,10 +284,7 @@ async function handleSubmit() {
 
   hackathonStore.setLoading(true)
 
-  // Randomly choose loading mode
-  loadingMode.value = Math.random() > 0.5 ? 'terminal' : 'scifi'
-
-  // Show loading
+  // Show loading (RandomLoading component will handle sequential selection)
   showTerminal.value = true
 
   // Random minimum delay between 5-10 seconds (5000-10000 ms)
@@ -371,16 +361,12 @@ async function handleSubmit() {
 
 .hackathon-container {
   min-height: 100vh;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
+  position: relative;
   background: #000205;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   color: #FA4786;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Animated Background */
@@ -504,27 +490,29 @@ async function handleSubmit() {
   position: relative;
   z-index: 2;
   padding: 1.5rem;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
   gap: 0.5rem;
 }
 
-/* TURBO Title */
-.turbo-title-container {
+/* Turbo Logo */
+.turbo-logo-container {
   position: relative;
   flex-shrink: 0;
-  margin-bottom: 0;
-  animation: turboSlideDown 1s ease-out;
+  margin: 0.5rem 0 0.3rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: logoSlideDown 1s ease-out, logoFloat 3s ease-in-out 1s infinite;
 }
 
-@keyframes turboSlideDown {
+@keyframes logoSlideDown {
   from {
     opacity: 0;
-    transform: translateY(-50px);
+    transform: translateY(-30px);
   }
   to {
     opacity: 1;
@@ -532,137 +520,40 @@ async function handleSubmit() {
   }
 }
 
-.turbo-title {
-  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  font-size: 5rem;
-  font-weight: 900;
-  letter-spacing: 15px;
-  margin: 0;
-  text-transform: uppercase;
-  position: relative;
-  display: inline-block;
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
-.turbo-text {
-  position: relative;
-  display: inline-block;
-  color: #ffffff;
+.turbo-logo {
+  max-width: 320px;
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6))
+          drop-shadow(0 0 30px rgba(107, 140, 255, 0.4));
+  animation: logoGlow 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
 }
 
-.grunge-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at 5% 10%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 8% 18%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 12% 28%, rgba(0,0,0,0.7) 2px, transparent 2px),
-    radial-gradient(circle at 15% 35%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 17% 42%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 20% 50%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 22% 58%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 25% 65%, rgba(0,0,0,0.8) 2px, transparent 2px),
-    radial-gradient(circle at 27% 72%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 30% 80%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 32% 88%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 35% 15%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 37% 22%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 40% 30%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 42% 38%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 45% 45%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 47% 52%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 50% 60%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 52% 68%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 55% 75%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 57% 82%, rgba(0,0,0,0.7) 2px, transparent 2px),
-    radial-gradient(circle at 60% 25%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 62% 32%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 65% 40%, rgba(0,0,0,0.7) 2px, transparent 2px),
-    radial-gradient(circle at 67% 48%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 70% 55%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 72% 62%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 75% 70%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 77% 78%, rgba(0,0,0,0.8) 2px, transparent 2px),
-    radial-gradient(circle at 80% 85%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 82% 92%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 85% 10%, rgba(0,0,0,0.8) 2px, transparent 2px),
-    radial-gradient(circle at 87% 18%, rgba(0,0,0,0.7) 1px, transparent 1px),
-    radial-gradient(circle at 90% 30%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 92% 38%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 95% 50%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 97% 58%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 12% 70%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 14% 78%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 18% 90%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 22% 10%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 24% 18%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 28% 25%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 32% 40%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 34% 48%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 38% 55%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 42% 70%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 44% 78%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 48% 85%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 52% 15%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 54% 22%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 58% 35%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 62% 50%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 64% 58%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 68% 65%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 72% 80%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 74% 88%, rgba(0,0,0,0.7) 2px, transparent 2px),
-    radial-gradient(circle at 78% 20%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 82% 40%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 84% 48%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 88% 60%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 92% 75%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 94% 82%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 8% 45%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 14% 60%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 16% 68%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 26% 75%, rgba(0,0,0,0.9) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 34% 90%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 36% 95%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 44% 5%, rgba(0,0,0,0.9) 2px, transparent 2px),
-    radial-gradient(circle at 46% 12%, rgba(0,0,0,0.8) 1px, transparent 1px),
-    radial-gradient(circle at 56% 8%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 66% 12%, rgba(0,0,0,0.9) 1px, transparent 1px),
-    radial-gradient(circle at 76% 5%, rgba(0,0,0,0.8) 2px, transparent 2px),
-    radial-gradient(circle at 86% 8%, rgba(0,0,0,0.7) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 96% 15%, rgba(0,0,0,0.9) 1px, transparent 1px);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  mix-blend-mode: multiply;
+.turbo-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 30px rgba(250, 71, 134, 0.8))
+          drop-shadow(0 0 40px rgba(107, 140, 255, 0.6));
 }
 
-.turbo-text::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 100%;
-  height: 100%;
-  color: rgba(250, 71, 134, 0.6);
-  z-index: -1;
-  filter: blur(2px);
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6))
+            drop-shadow(0 0 30px rgba(107, 140, 255, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px rgba(250, 71, 134, 0.8))
+            drop-shadow(0 0 40px rgba(107, 140, 255, 0.6));
+  }
 }
-
-.turbo-text::after {
-  content: attr(data-text);
-  position: absolute;
-  left: -3px;
-  top: -3px;
-  width: 100%;
-  height: 100%;
-  color: rgba(107, 140, 255, 0.6);
-  z-index: -2;
-  filter: blur(2px);
-}
-
 
 /* Header */
 .header-section {
@@ -673,10 +564,10 @@ async function handleSubmit() {
 
 .main-title {
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 900;
   letter-spacing: 3px;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.2rem;
   text-transform: uppercase;
   background: linear-gradient(180deg, #fff, #FA4786);
   -webkit-background-clip: text;
@@ -737,8 +628,7 @@ async function handleSubmit() {
   max-width: 900px;
   perspective: 1000px;
   animation: formSlideIn 0.8s ease-out;
-  flex-shrink: 0;
-  overflow: visible;
+  margin-bottom: 2rem;
 }
 
 @keyframes formSlideIn {
@@ -755,7 +645,7 @@ async function handleSubmit() {
 .hud-panel {
   background: rgba(10, 0, 10, 0.85);
   border: 1px solid rgba(250, 71, 134, 0.3);
-  padding: 2rem 2.5rem;
+  padding: 1.5rem 2rem;
   position: relative;
   backdrop-filter: blur(15px);
   clip-path: polygon(
@@ -849,7 +739,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   position: relative;
 }
 
@@ -964,8 +854,15 @@ async function handleSubmit() {
 }
 
 /* Inputs */
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .input-group {
-  margin-bottom: 1.3rem;
+  margin-bottom: 1rem;
 }
 
 .input-label {
@@ -1014,13 +911,13 @@ async function handleSubmit() {
 
 .cyber-input {
   width: 100%;
-  padding: 1.1rem 1.5rem;
+  padding: 0.9rem 1.2rem;
   background: rgba(20, 0, 20, 0.5);
   border: none;
   border-bottom: 2px solid rgba(250, 71, 134, 0.2);
   color: #fff;
   font-family: 'Orbitron', 'Chakra Petch', monospace;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
   position: relative;
@@ -1072,20 +969,20 @@ async function handleSubmit() {
 /* Button */
 .cyber-button {
   width: 100%;
-  padding: 1.2rem;
+  padding: 1rem;
   background: linear-gradient(135deg, rgba(0, 10, 30, 0.7) 0%, rgba(10, 5, 40, 0.75) 100%);
   border: 2px solid transparent;
   background-clip: padding-box;
   color: #FFB3D1;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
   clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
-  margin-top: 1rem;
+  margin-top: 0.8rem;
   letter-spacing: 2px;
   text-transform: uppercase;
   box-shadow:
@@ -1318,15 +1215,20 @@ async function handleSubmit() {
     padding: 1rem;
   }
 
-  .turbo-title {
-    font-size: 2.5rem;
-    letter-spacing: 8px;
+  .turbo-logo {
+    max-width: 240px;
   }
 
   .main-title {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     letter-spacing: 2px;
   }
+
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
   .hud-panel {
     padding: 1.5rem;
   }

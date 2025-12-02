@@ -16,6 +16,7 @@ export interface SubmitResponse {
   uuid: string
   passKeyType: 'develop' | 'present' | 'finalist'
   maxDurationInSecs: number
+  timeUsedInSeconds: number
   totalQuestion: number
   maximumScore: number
   answeredQuestion: number
