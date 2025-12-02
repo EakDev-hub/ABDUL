@@ -361,16 +361,12 @@ async function handleSubmit() {
 
 .hackathon-container {
   min-height: 100vh;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
+  position: relative;
   background: #000205;
   font-family: 'Orbitron', 'Chakra Petch', sans-serif;
   color: #FA4786;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Animated Background */
@@ -494,12 +490,11 @@ async function handleSubmit() {
   position: relative;
   z-index: 2;
   padding: 1.5rem;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
   gap: 0.5rem;
 }
 
@@ -633,8 +628,7 @@ async function handleSubmit() {
   max-width: 900px;
   perspective: 1000px;
   animation: formSlideIn 0.8s ease-out;
-  flex-shrink: 0;
-  overflow: visible;
+  margin-bottom: 2rem;
 }
 
 @keyframes formSlideIn {
