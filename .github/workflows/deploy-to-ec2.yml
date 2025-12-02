@@ -188,6 +188,7 @@ jobs:
             "cat > /tmp/.env << 'EOF'
           ${{ secrets.BACKEND_ENV }}
           ${{ secrets.NAMEK_ENV }}
+          ${{ secrets.DASHBOARD_ENV }}
           EOF"
 
       - name: Execute deployment script on EC2

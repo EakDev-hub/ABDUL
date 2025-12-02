@@ -44,16 +44,16 @@ public class HackathonService : IHackathonService
         var aiInstruction = await GetAiInstructionAsync();
         
         // Phase 3: Collect answers from team API (TIME LIMITED)
-        var results = await CollectAnswersFromTeamApiAsync(request.ApiUrl, questions, teamPassKey.MaxDurationInSeconds);
+        var (results, timeUsedInSeconds) = await CollectAnswersFromTeamApiAsync(request.ApiUrl, questions, teamPassKey.MaxDurationInSeconds);
         
         // Phase 4: AI Evaluation (NO TIME LIMIT)
         await EvaluateAnswersWithAiAsync(results, aiInstruction);
         
         // Phase 5: Save to database
-        var uuid = await SaveResultsAsync(teamPassKey, questions.Count, results);
+        var uuid = await SaveResultsAsync(teamPassKey, questions.Count, results, timeUsedInSeconds);
         
         // Build and return response
-        return BuildResponse(uuid, teamPassKey, questions.Count, results);
+        return BuildResponse(uuid, teamPassKey, questions.Count, results, timeUsedInSeconds);
     }
 
     private async Task<TeamPassKey> ValidateAndGetPassKeyAsync(string passKey, string team)
@@ -164,9 +164,9 @@ public class HackathonService : IHackathonService
         return instruction;
     }
 
-    private async Task<List<QuestionResult>> CollectAnswersFromTeamApiAsync(
-        string apiUrl, 
-        List<Question> questions, 
+    private async Task<(List<QuestionResult>, decimal)> CollectAnswersFromTeamApiAsync(
+        string apiUrl,
+        List<Question> questions,
         int maxDurationInSeconds)
     {
         var results = new List<QuestionResult>();
@@ -207,43 +207,73 @@ public class HackathonService : IHackathonService
                 Score = 0 // Will be set in AI evaluation phase
             });
 
-            _logger.LogInformation("Question {No} answered in {Elapsed:F2}s (Total: {Total:F2}s)", 
+            _logger.LogInformation("Question {No} answered in {Elapsed:F2}s (Total: {Total:F2}s)",
                 question.No, stopwatch.Elapsed.TotalSeconds, stopwatch.Elapsed.TotalSeconds);
         }
 
         stopwatch.Stop();
+        
+        // Calculate actual time used: minimum of elapsed time or max duration, rounded to 2 decimal places
+        var timeUsedInSeconds = Math.Round((decimal)Math.Min(stopwatch.Elapsed.TotalSeconds, maxDurationInSeconds), 2);
+        
         _logger.LogInformation("Question collection completed. Time used: {Elapsed:F2}s, Questions answered: {Count}",
-            stopwatch.Elapsed.TotalSeconds, results.Count);
+            timeUsedInSeconds, results.Count);
 
-        return results;
+        return (results, timeUsedInSeconds);
     }
 
     private async Task EvaluateAnswersWithAiAsync(List<QuestionResult> results, AiEvaluationInstruction aiInstruction)
     {
-        _logger.LogInformation("Starting AI evaluation for {Count} answers (NO TIME LIMIT)", results.Count);
+        _logger.LogInformation("Starting AI evaluation for {Count} answers with max 10 concurrent calls (NO TIME LIMIT)", results.Count);
 
         var evaluationStopwatch = Stopwatch.StartNew();
+        var completedCount = 0;
+        var lockObject = new object();
 
-        foreach (var result in results)
+        // Use SemaphoreSlim to throttle to max 10 concurrent API calls
+        using var semaphore = new SemaphoreSlim(10, 10);
+
+        var tasks = results.Select(async result =>
         {
-            var score = await _openRouterClient.EvaluateAnswerAsync(
-                aiInstruction.Instruction,
-                aiInstruction.Model,
-                result.Question,
-                result.ExpectedAnswer,
-                result.ActualAnswer ?? ""
-            );
+            await semaphore.WaitAsync(); // Wait for available slot
+            try
+            {
+                _logger.LogInformation("Evaluating question {No}...", result.No);
+                
+                var score = await _openRouterClient.EvaluateAnswerAsync(
+                    aiInstruction.Instruction,
+                    aiInstruction.Model,
+                    result.Question,
+                    result.ExpectedAnswer,
+                    result.ActualAnswer ?? ""
+                );
 
-            result.Score = score;
-            
-            _logger.LogInformation("Question {No} evaluated: score = {Score}", result.No, score);
-        }
+                result.Score = score;
+                
+                int completed;
+                lock (lockObject)
+                {
+                    completedCount++;
+                    completed = completedCount;
+                }
+                
+                _logger.LogInformation("Question {No} evaluated: score = {Score} ({Completed}/{Total})",
+                    result.No, score, completed, results.Count);
+            }
+            finally
+            {
+                semaphore.Release(); // Free up slot for next task
+            }
+        }).ToList();
+
+        await Task.WhenAll(tasks);
 
         evaluationStopwatch.Stop();
-        _logger.LogInformation("AI evaluation completed in {Elapsed:F2}s", evaluationStopwatch.Elapsed.TotalSeconds);
+        _logger.LogInformation("AI evaluation completed in {Elapsed:F2}s for {Count} questions",
+            evaluationStopwatch.Elapsed.TotalSeconds, results.Count);
     }
 
-    private async Task<string> SaveResultsAsync(TeamPassKey teamPassKey, int totalQuestions, List<QuestionResult> results)
+    private async Task<string> SaveResultsAsync(TeamPassKey teamPassKey, int totalQuestions, List<QuestionResult> results, decimal timeUsedInSeconds)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -254,9 +284,9 @@ public class HackathonService : IHackathonService
         {
             // Insert answer_log
             const string insertLogQuery = @"
-                INSERT INTO hackathon.answer_log 
-                (team, pass_key, pass_key_type, max_duration_in_seconds, total_question, answered_question, maximum_score, score)
-                VALUES (@team, @passKey, @passKeyType, @maxDuration, @totalQuestion, @answeredQuestion, @maximumScore, @score)
+                INSERT INTO hackathon.answer_log
+                (team, pass_key, pass_key_type, max_duration_in_seconds, total_question, answered_question, maximum_score, score, time_used_in_seconds)
+                VALUES (@team, @passKey, @passKeyType, @maxDuration, @totalQuestion, @answeredQuestion, @maximumScore, @score, @timeUsed)
                 RETURNING uuid";
 
             await using var logCommand = new NpgsqlCommand(insertLogQuery, connection, transaction);
@@ -268,11 +298,12 @@ public class HackathonService : IHackathonService
             logCommand.Parameters.AddWithValue("@answeredQuestion", results.Count);
             logCommand.Parameters.AddWithValue("@maximumScore", (decimal)totalQuestions);
             logCommand.Parameters.AddWithValue("@score", results.Sum(r => r.Score));
+            logCommand.Parameters.AddWithValue("@timeUsed", timeUsedInSeconds);
 
-            var uuid = (await logCommand.ExecuteScalarAsync())?.ToString() 
+            var uuid = (await logCommand.ExecuteScalarAsync())?.ToString()
                 ?? throw new InvalidOperationException("Failed to generate UUID");
 
-            _logger.LogInformation("Created answer_log with UUID: {Uuid}", uuid);
+            _logger.LogInformation("Created answer_log with UUID: {Uuid}, Time used: {TimeUsed:F2}s", uuid, timeUsedInSeconds);
 
             // Insert answer_log_detail for each result
             const string insertDetailQuery = @"
@@ -307,13 +338,14 @@ public class HackathonService : IHackathonService
         }
     }
 
-    private HackathonResponse BuildResponse(string uuid, TeamPassKey teamPassKey, int totalQuestions, List<QuestionResult> results)
+    private HackathonResponse BuildResponse(string uuid, TeamPassKey teamPassKey, int totalQuestions, List<QuestionResult> results, decimal timeUsedInSeconds)
     {
         var response = new HackathonResponse
         {
             Uuid = uuid,
             PassKeyType = teamPassKey.PassKeyType,
             MaxDurationInSecs = teamPassKey.MaxDurationInSeconds,
+            TimeUsedInSeconds = timeUsedInSeconds,
             TotalQuestion = totalQuestions,
             MaximumScore = totalQuestions,
             AnsweredQuestion = results.Count,
@@ -321,8 +353,8 @@ public class HackathonService : IHackathonService
             Results = results
         };
 
-        _logger.LogInformation("Built response: UUID={Uuid}, Answered={Answered}/{Total}, Score={Score:F2}/{Max}",
-            uuid, results.Count, totalQuestions, response.Score, totalQuestions);
+        _logger.LogInformation("Built response: UUID={Uuid}, Time={TimeUsed:F2}s/{Max}s, Answered={Answered}/{Total}, Score={Score:F2}/{Max}",
+            uuid, timeUsedInSeconds, teamPassKey.MaxDurationInSeconds, results.Count, totalQuestions, response.Score, totalQuestions);
 
         return response;
     }
