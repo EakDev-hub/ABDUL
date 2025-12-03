@@ -19,10 +19,13 @@ app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }))
 app.use(cors())
 
-// Serve static files at root path
-// NGINX will proxy /forms to this server, so we serve at root
-app.use(express.static(DIST_DIR, { redirect: false }))
-
+// Serve static files at /forms path
+// This matches Vite's base: '/forms' configuration
+// index: 'index.html' allows serving index.html when requesting /forms directly
+app.use('/forms', express.static(DIST_DIR, {
+  index: 'index.html',
+  redirect: false
+}))
 
 // Healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
