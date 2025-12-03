@@ -21,10 +21,10 @@ const getEnvConfig = async (): Promise<IEnv> => {
     return decryptedEnv
   } catch (error) {
     console.error('Error loading environment config:', error)
-    // Fallback to default values
+    // Fallback to environment variables from Vite
     return {
-      NODE_ENV: 'development',
-      API_GATEWAY_URL: 'http://localhost:5000'
+      NODE_ENV: import.meta.env.MODE || 'development',
+      API_GATEWAY_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
     }
   }
 }
