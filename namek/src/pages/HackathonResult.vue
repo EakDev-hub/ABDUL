@@ -199,7 +199,7 @@ function goBack() {
   isExiting.value = true
   setTimeout(() => {
     hackathonStore.clearResult()
-    router.push('/hackathon')
+    router.push('/')
   }, 1500)
 }
 </script>
