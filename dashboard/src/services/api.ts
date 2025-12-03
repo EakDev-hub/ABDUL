@@ -12,12 +12,12 @@ const apiClient: AxiosInstance = axios.create({
 
 // Request interceptor สำหรับเพิ่ม token หรือ headers อื่นๆ
 apiClient.interceptors.request.use(
-  async (config) => {
+  (config) => {
     // โหลด baseURL จาก env store
     const envStore = useEnvStore()
     let api = envStore.getEnv()
     if (!Object.keys(api).length) {
-      const envConfig = await getEnvConfig()
+      const envConfig = getEnvConfig()
       envStore.setEnv(envConfig)
       api = envConfig
     }
