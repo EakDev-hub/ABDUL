@@ -139,6 +139,18 @@ cp "$DOCKER_COMPOSE_FILE" "$DEPLOYMENT_DIR/docker-compose.prod.yml" || error "Fa
 cp "$ENV_FILE" "$DEPLOYMENT_DIR/.env" || error "Failed to copy .env file"
 chmod 600 "$DEPLOYMENT_DIR/.env"
 
+# Copy nginx configuration if provided
+if [ -d "/tmp/nginx-config" ]; then
+    log "Copying nginx configuration files..."
+    mkdir -p "$DEPLOYMENT_DIR/nginx"
+    cp /tmp/nginx-config/nginx.conf "$DEPLOYMENT_DIR/nginx/" || warning "Failed to copy nginx.conf"
+    cp /tmp/nginx-config/Dockerfile "$DEPLOYMENT_DIR/nginx/" || warning "Failed to copy nginx Dockerfile"
+    rm -rf /tmp/nginx-config
+    log "NGINX configuration copied successfully"
+else
+    log "Using existing nginx configuration from repository"
+fi
+
 # Stop existing containers
 log "Stopping existing containers..."
 if ${DOCKER_COMPOSE_CMD} -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" ps 2>/dev/null | grep -q "abdul"; then
@@ -174,6 +186,22 @@ docker build -t abdul-dashboard:latest \
     "$DEPLOYMENT_DIR/dashboard" || error "Failed to build dashboard image"
 log "Dashboard image built successfully"
 
+# Build NGINX Docker image
+log "Building nginx reverse proxy Docker image..."
+docker build -t abdul-nginx:latest \
+    -f "$DEPLOYMENT_DIR/nginx/Dockerfile" \
+    "$DEPLOYMENT_DIR/nginx" || error "Failed to build nginx image"
+log "NGINX image built successfully"
+
+# Create Docker network if it doesn't exist
+log "Setting up Docker network..."
+if ! docker network inspect hackathon-network >/dev/null 2>&1; then
+    docker network create hackathon-network || error "Failed to create Docker network"
+    log "Docker network created"
+else
+    log "Docker network already exists"
+fi
+
 # Start new containers
 log "Starting containers with ${DOCKER_COMPOSE_CMD}..."
 ${DOCKER_COMPOSE_CMD} -f "$DEPLOYMENT_DIR/docker-compose.prod.yml" up -d || error "Failed to start containers"
@@ -184,9 +212,14 @@ sleep 10
 
 # Check container status
 log "Verifying container status..."
+NGINX_STATUS=$(docker ps --filter "name=abdul-nginx" --format "{{.Status}}" 2>/dev/null || echo "")
 BACKEND_STATUS=$(docker ps --filter "name=abdul-backend" --format "{{.Status}}" 2>/dev/null || echo "")
 NAMEK_STATUS=$(docker ps --filter "name=abdul-namek" --format "{{.Status}}" 2>/dev/null || echo "")
 DASHBOARD_STATUS=$(docker ps --filter "name=abdul-dashboard" --format "{{.Status}}" 2>/dev/null || echo "")
+
+if [ -z "$NGINX_STATUS" ]; then
+    error "NGINX container is not running"
+fi
 
 if [ -z "$BACKEND_STATUS" ]; then
     error "Backend container is not running"
@@ -200,28 +233,57 @@ if [ -z "$DASHBOARD_STATUS" ]; then
     error "Dashboard container is not running"
 fi
 
+log "NGINX container status: $NGINX_STATUS"
 log "Backend container status: $BACKEND_STATUS"
 log "Namek container status: $NAMEK_STATUS"
 log "Dashboard container status: $DASHBOARD_STATUS"
 
 # Verify services are accessible
 log "Verifying service connectivity..."
-if curl -f http://localhost:5000/health > /dev/null 2>&1; then
-    log "Backend service is responding on port 5000"
+
+# Check NGINX reverse proxy
+if curl -f http://localhost/nginx-health > /dev/null 2>&1; then
+    log "✓ NGINX reverse proxy is responding on port 80"
 else
-    warning "Backend health check failed, but container is running"
+    warning "NGINX health check failed, but container is running"
+fi
+
+# Check services via NGINX proxy
+if curl -f http://localhost/api/healthcheck > /dev/null 2>&1; then
+    log "✓ Backend service is responding via NGINX proxy (/api)"
+else
+    warning "Backend health check via proxy failed"
+fi
+
+if curl -f http://localhost/from > /dev/null 2>&1; then
+    log "✓ Namek service is responding via NGINX proxy (/from)"
+else
+    warning "Namek health check via proxy failed"
+fi
+
+if curl -f http://localhost/ > /dev/null 2>&1; then
+    log "✓ Dashboard service is responding via NGINX proxy (/)"
+else
+    warning "Dashboard health check via proxy failed"
+fi
+
+# Check direct port access
+if curl -f http://localhost:5000/healthcheck > /dev/null 2>&1; then
+    log "✓ Backend service is responding on direct port 5000"
+else
+    warning "Backend health check on port 5000 failed"
 fi
 
 if curl -f http://localhost:3000/ > /dev/null 2>&1; then
-    log "Namek service is responding on port 3000"
+    log "✓ Namek service is responding on direct port 3000"
 else
-    warning "Namek health check failed, but container is running"
+    warning "Namek health check on port 3000 failed"
 fi
 
 if curl -f http://localhost:8080/ > /dev/null 2>&1; then
-    log "Dashboard service is responding on port 8080"
+    log "✓ Dashboard service is responding on direct port 8080"
 else
-    warning "Dashboard health check failed, but container is running"
+    warning "Dashboard health check on port 8080 failed"
 fi
 
 # Cleanup old images (keep last 2 versions)
@@ -236,9 +298,17 @@ log "━━━━━━━━━━━━━━━━━━━━━━━━━
 log "✓ Deployment completed successfully!"
 log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 log "Commit: ${CURRENT_COMMIT}"
-log "Backend: http://localhost:5000"
-log "Namek: http://localhost:3000"
-log "Dashboard: http://localhost:8080"
+log ""
+log "Access via NGINX Reverse Proxy (Recommended):"
+log "  Dashboard:  http://localhost/"
+log "  Namek:      http://localhost/from"
+log "  Backend:    http://localhost/api/*"
+log ""
+log "Direct Port Access (Development/Debug):"
+log "  Dashboard:  http://localhost:8080/"
+log "  Namek:      http://localhost:3000/"
+log "  Backend:    http://localhost:5000/*"
+log ""
 log "Deployment logs: $LOG_FILE"
 log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
