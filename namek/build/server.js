@@ -18,7 +18,7 @@ app.disable('x-powered-by')
 app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }))
 app.use(cors())
-app.use(express.static(DIST_DIR))
+app.use('/forms', express.static(DIST_DIR, { redirect: false }))
 
 // Healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
