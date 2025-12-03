@@ -17,6 +17,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'HackathonResult',
     component: () => import('@/pages/HackathonResult.vue')
   },
+  // {
+  //   path: '/loading-test',
+  //   name: 'LoadingTest',
+  //   component: () => import('@/pages/LoadingTest.vue')
+  // },
   {
     path: '/hackathon/result/mock',
     name: 'HackathonResultMock',
@@ -29,6 +34,7 @@ const routes: Array<RouteRecordRaw> = [
         uuid: 'mock-uuid-12345-67890-abcdef',
         passKeyType: 'develop',
         maxDurationInSecs: 300,
+        timeUsedInSeconds: 245,
         totalQuestion: 10,
         maximumScore: 10,
         answeredQuestion: 8,

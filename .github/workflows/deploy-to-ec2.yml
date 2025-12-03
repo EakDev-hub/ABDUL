@@ -175,6 +175,18 @@ jobs:
             docker-compose.prod.yml \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/docker-compose.yml
 
+      - name: Transfer nginx configuration to EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "mkdir -p /tmp/nginx-config"
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            nginx/nginx.conf \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/nginx-config/
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            nginx/Dockerfile \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/nginx-config/
+
       - name: Transfer deployment script to EC2
         run: |
           scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
@@ -203,8 +215,25 @@ jobs:
       - name: Verify deployment
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "docker ps --filter 'name=abdul' --format 'table {{.Names}}\t{{.Status}}'"
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            echo "======================================"
+            echo "Container Status:"
+            echo "======================================"
+            docker ps --filter 'name=abdul' --format 'table {{.Names}}\t{{.Status}}'
+            echo ""
+            echo "======================================"
+            echo "Service Health Checks:"
+            echo "======================================"
+            echo -n "NGINX Proxy:  "
+            curl -s http://localhost/nginx-health || echo "FAILED"
+            echo -n "Dashboard:    "
+            curl -s -o /dev/null -w "%{http_code}" http://localhost/ || echo "FAILED"
+            echo -n "Namek:        "
+            curl -s -o /dev/null -w "%{http_code}" http://localhost/from || echo "FAILED"
+            echo -n "Backend API:  "
+            curl -s -o /dev/null -w "%{http_code}" http://localhost/api/healthcheck || echo "FAILED"
+            echo ""
+          EOF
 
       - name: Cleanup SSH key
         if: always()
