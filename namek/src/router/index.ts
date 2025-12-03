@@ -5,15 +5,11 @@ import type { SubmitResponse } from '@/types/hackathon'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/hackathon'
-  },
-  {
-    path: '/hackathon',
     name: 'HackathonSubmit',
     component: () => import('@/pages/HackathonSubmit.vue')
   },
   {
-    path: '/hackathon/result',
+    path: '/result',
     name: 'HackathonResult',
     component: () => import('@/pages/HackathonResult.vue')
   },
@@ -23,7 +19,7 @@ const routes: Array<RouteRecordRaw> = [
   //   component: () => import('@/pages/LoadingTest.vue')
   // },
   {
-    path: '/hackathon/result/mock',
+    path: '/result/mock',
     name: 'HackathonResultMock',
     component: () => import('@/pages/HackathonResult.vue'),
     beforeEnter: () => {
@@ -120,7 +116,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/forms'),
   routes
 })
 
