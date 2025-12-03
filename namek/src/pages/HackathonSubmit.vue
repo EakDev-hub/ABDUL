@@ -316,7 +316,7 @@ async function handleSubmit() {
     hackathonStore.setLoading(false)
 
     // Navigate to results page immediately
-    router.push('/hackathon/result')
+    router.push('/result')
   } catch (err: any) {
     console.error('API Error:', err)
 
