@@ -432,7 +432,7 @@ onUnmounted(() => {
 .timer-section {
   background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px;
   box-shadow:
     0 0 20px rgba(250, 71, 134, 0.4),
     0 0 40px rgba(0, 45, 114, 0.3),
@@ -471,19 +471,19 @@ onUnmounted(() => {
 
 .timer-section h2 {
   color: #fa4786;
-  margin-bottom: 6px;
-  font-size: 1rem;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
   text-shadow: 0 0 10px rgba(250, 71, 134, 0.8);
   position: relative;
   z-index: 1;
 }
 
 .timer {
-  font-size: 4rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #ffffff;
   font-family: 'Orbitron', 'Courier New', monospace;
-  padding: 10px;
+  padding: 8px;
   border-radius: 6px;
   text-shadow:
     0 0 10px rgba(250, 71, 134, 0.8),
@@ -584,7 +584,7 @@ onUnmounted(() => {
   padding: 6px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   box-shadow: 0 2px 10px rgba(250, 71, 134, 0.3);
 }
