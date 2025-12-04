@@ -17,7 +17,7 @@ public class QnaController : ControllerBase
     }
 
     /// <summary>
-    /// Get latest 3 Q&A records ordered by created_at DESC
+    /// Get latest 5 Q&A records ordered by created_at DESC
     /// </summary>
     /// <returns>List of latest Q&A records</returns>
     [HttpGet]
