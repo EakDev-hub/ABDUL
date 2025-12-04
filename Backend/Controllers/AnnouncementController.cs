@@ -17,7 +17,7 @@ public class AnnouncementController : ControllerBase
     }
 
     /// <summary>
-    /// Get latest 5 active announcements ordered by posted_at DESC
+    /// Get latest 3 active announcements ordered by posted_at DESC
     /// </summary>
     /// <returns>List of latest announcements</returns>
     [HttpGet]

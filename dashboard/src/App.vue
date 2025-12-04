@@ -8,7 +8,7 @@ import { useScoreStore } from '@/store/score.store'
 import { scoreService } from '@/services/score.service'
 
 // Hackathon finish time - Set your actual finish time here
-const hackathonFinishTime = new Date('2025-11-19T12:00:00').getTime()
+const hackathonFinishTime = new Date('2025-12-19T12:00:00').getTime()
 
 // Announcement store
 const announcementStore = useAnnouncementStore()
@@ -708,7 +708,7 @@ onUnmounted(() => {
     inset 0 0 20px rgba(0, 45, 114, 0.1);
   border: 2px solid;
   border-image: linear-gradient(135deg, #fa4786, #002d72) 1;
-  flex: 0.8;
+  flex: 0.6;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -772,7 +772,7 @@ onUnmounted(() => {
     inset 0 0 20px rgba(0, 45, 114, 0.1);
   border: 2px solid;
   border-image: linear-gradient(135deg, #002d72, #fa4786) 1;
-  flex: 1.5;
+  flex: 2.0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
