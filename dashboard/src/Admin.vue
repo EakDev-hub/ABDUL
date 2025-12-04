@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { adminService } from '@/services/admin.service'
 import type { Qna } from '@/types/qna'
 import type { Announcement } from '@/types/announcement'
