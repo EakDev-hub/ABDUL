@@ -186,7 +186,7 @@ public class HackathonService : IHackathonService
 
             // Calculate remaining time for this request
             var remainingTime = maxDuration - stopwatch.Elapsed;
-            var timeoutForThisRequest = TimeSpan.FromSeconds(Math.Min(5, remainingTime.TotalSeconds));
+            var timeoutForThisRequest = TimeSpan.FromSeconds(Math.Min(999, remainingTime.TotalSeconds));
 
             if (timeoutForThisRequest.TotalSeconds < 0.1)
             {
