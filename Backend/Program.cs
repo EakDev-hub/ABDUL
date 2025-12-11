@@ -29,7 +29,7 @@ builder.Services.AddSwaggerGen(options =>
 // Register HttpClient for team API (5s timeout)
 builder.Services.AddHttpClient("TeamApi", client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(5);
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // Register HttpClient for OpenRouter (30s timeout)
