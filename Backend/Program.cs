@@ -29,13 +29,13 @@ builder.Services.AddSwaggerGen(options =>
 // Register HttpClient for team API (5s timeout)
 builder.Services.AddHttpClient("TeamApi", client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(30);
+    client.Timeout = TimeSpan.FromSeconds(60);
 });
 
 // Register HttpClient for OpenRouter (30s timeout)
 builder.Services.AddHttpClient("OpenRouter", client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(30);
+    client.Timeout = TimeSpan.FromSeconds(60);
     client.DefaultRequestHeaders.Add("HTTP-Referer", "http://localhost:5000");
     client.DefaultRequestHeaders.Add("X-Title", "ABDUL Hackathon");
 });
