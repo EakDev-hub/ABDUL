@@ -4,5 +4,5 @@ namespace AbdulBackend.Services;
 
 public interface IScoreService
 {
-    Task<List<TeamScoreSummary>> GetTeamScoreSummaryAsync();
+    Task<List<TeamScoreSummary>> GetTeamScoreSummaryAsync(string? passKeyType = null);
 }

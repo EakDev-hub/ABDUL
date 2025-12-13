@@ -23,7 +23,7 @@ public class ScoreService : IScoreService
         _logger.LogInformation("Database connection configured for ScoreService: Host={Host}, Database={Database}, Schema=hackathon", host, database);
     }
 
-    public async Task<List<TeamScoreSummary>> GetTeamScoreSummaryAsync()
+    public async Task<List<TeamScoreSummary>> GetTeamScoreSummaryAsync(string? passKeyType = null)
     {
         var teamScores = new List<TeamScoreSummary>();
 
@@ -32,15 +32,45 @@ public class ScoreService : IScoreService
             await using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            const string query = @"
-                SELECT DISTINCT ON (team)
-                    team,
-                    score as total_score,
-                    time_used_in_seconds
-                FROM hackathon.answer_log
-                ORDER BY team, score DESC, time_used_in_seconds ASC";
+            // Build query based on whether passKeyType filter is provided
+            string query;
+            if (string.IsNullOrWhiteSpace(passKeyType))
+            {
+                query = @"
+                    SELECT team, total_score, time_used_in_seconds
+                    FROM (
+                        SELECT DISTINCT ON (team)
+                            team,
+                            score as total_score,
+                            time_used_in_seconds
+                        FROM hackathon.answer_log
+                        ORDER BY team, score DESC, time_used_in_seconds ASC
+                    ) AS best_scores
+                    ORDER BY total_score DESC, time_used_in_seconds ASC";
+            }
+            else
+            {
+                query = @"
+                    SELECT team, total_score, time_used_in_seconds
+                    FROM (
+                        SELECT DISTINCT ON (team)
+                            team,
+                            score as total_score,
+                            time_used_in_seconds
+                        FROM hackathon.answer_log
+                        WHERE pass_key_type = @passKeyType
+                        ORDER BY team, score DESC, time_used_in_seconds ASC
+                    ) AS best_scores
+                    ORDER BY total_score DESC, time_used_in_seconds ASC";
+            }
             
             await using var command = new NpgsqlCommand(query, connection);
+            
+            if (!string.IsNullOrWhiteSpace(passKeyType))
+            {
+                command.Parameters.AddWithValue("@passKeyType", passKeyType);
+            }
+            
             await using var reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
@@ -56,11 +86,13 @@ public class ScoreService : IScoreService
             // Sort by highest score descending
             teamScores = teamScores.OrderByDescending(t => t.TotalScore).ToList();
 
-            _logger.LogInformation("Successfully retrieved {Count} team score summaries", teamScores.Count);
+            _logger.LogInformation("Successfully retrieved {Count} team score summaries with passKeyType filter: {PassKeyType}",
+                teamScores.Count, passKeyType ?? "None");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving team score summaries from database");
+            _logger.LogError(ex, "Error retrieving team score summaries from database with passKeyType filter: {PassKeyType}",
+                passKeyType ?? "None");
             throw;
         }
 

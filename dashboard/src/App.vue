@@ -96,7 +96,7 @@ const fetchQna = async () => {
 }
 
 // QR Code URL for Q&A
-const qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://forms.gle/yourQAform'
+const qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://forms.gle/d1fbLviWCx57SbUp7'
 
 // Update current time and countdown
 const updateTime = () => {
@@ -296,10 +296,10 @@ onUnmounted(() => {
             <div class="sponsor-section">
               <p class="sponsor-title">Sponsored by</p>
               <div class="sponsor-logo-container">
-                <img src="./assets/images/sponsor/aws.png" alt="AWS" class="sponsor-logo" />
-                <img src="./assets/images/sponsor/mtl.png" alt="MTL" class="sponsor-logo" />
-                <img src="./assets/images/sponsor/ngernturbo.png" alt="Ngern Turbo" class="sponsor-logo" />
                 <img src="./assets/images/sponsor/viriyah.png" alt="Viriyah" class="sponsor-logo" />
+                <img src="./assets/images/sponsor/mtl.png" alt="MTL" class="sponsor-logo" />
+                <img src="./assets/images/sponsor/aws.png" alt="AWS" class="sponsor-logo" />
+                <img src="./assets/images/sponsor/ngernturbo.png" alt="Ngern Turbo" class="sponsor-logo" />
               </div>
             </div>
           </div>
@@ -356,27 +356,6 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 1;
   will-change: opacity;
-}
-
-.dashboard::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(250, 71, 134, 0.8) 20%,
-    rgba(0, 45, 114, 0.8) 50%,
-    rgba(250, 71, 134, 0.8) 80%,
-    transparent 100%
-  );
-  animation: scanline 4s linear infinite;
-  pointer-events: none;
-  z-index: 100;
-  box-shadow: 0 0 10px rgba(250, 71, 134, 0.5);
-  will-change: transform;
 }
 
 @keyframes scanline {
@@ -889,9 +868,9 @@ onUnmounted(() => {
 }
 
 .sponsor-logo {
-  height: 40px;
+  height: 60px;
   width: auto;
-  max-width: 70px;
+  max-width: 150px;
   object-fit: contain;
   filter: drop-shadow(0 0 8px rgba(250, 71, 134, 0.3)) drop-shadow(0 0 15px rgba(0, 45, 114, 0.2));
   transition: all 0.3s ease;
