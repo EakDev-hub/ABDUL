@@ -9,6 +9,9 @@ public class OpenRouterRequest
     
     [JsonPropertyName("messages")]
     public List<OpenRouterMessage> Messages { get; set; } = new();
+    
+    [JsonPropertyName("temperature")]
+    public decimal Temperature { get; set; } = 0;
 }
 
 public class OpenRouterMessage
