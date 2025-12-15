@@ -102,6 +102,7 @@ onUnmounted(() => {
               <tr>
                 <th>Rank</th>
                 <th>Team</th>
+                <th>Questions</th>
                 <th>Duration</th>
                 <th>Total Score</th>
               </tr>
@@ -111,6 +112,7 @@ onUnmounted(() => {
                   :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
                 <td class="rank">{{ index + 1 }}</td>
                 <td class="team-name">{{ score.team }}</td>
+                <td class="questions">{{ score.answeredQuestion }}/{{ score.totalQuestion }}</td>
                 <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
                 <td class="score">{{ score.totalScore.toFixed(1) }}</td>
               </tr>
@@ -134,6 +136,7 @@ onUnmounted(() => {
               <tr>
                 <th>Rank</th>
                 <th>Team</th>
+                <th>Questions</th>
                 <th>Duration</th>
                 <th>Total Score</th>
               </tr>
@@ -143,6 +146,7 @@ onUnmounted(() => {
                   :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
                 <td class="rank">{{ index + 1 }}</td>
                 <td class="team-name">{{ score.team }}</td>
+                <td class="questions">{{ score.answeredQuestion }}/{{ score.totalQuestion }}</td>
                 <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
                 <td class="score">{{ score.totalScore.toFixed(1) }}</td>
               </tr>
@@ -358,6 +362,12 @@ onUnmounted(() => {
 .team-name {
   font-weight: 600;
   color: #cbd5e0;
+  font-size: 0.6rem;
+}
+
+.questions {
+  font-weight: 600;
+  color: #e2e8f0;
   font-size: 0.6rem;
 }
 

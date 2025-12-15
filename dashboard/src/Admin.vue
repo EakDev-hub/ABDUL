@@ -349,17 +349,18 @@ onUnmounted(() => {
               <th>ID</th>
               <th>Question</th>
               <th>Answer</th>
-              <th>Created At</th>
-              <th>Updated At</th>
+d              <th>Updated At</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="qna in qnaList" :key="qna.id">
               <td>{{ qna.id }}</td>
-              <td class="question-col">{{ qna.question }}</td>
+              <td class="question-col">
+                <span class="posted-at">Posted at: {{ formatDate(qna.createdAt) }}</span>
+                <span class="question-text">Q: {{ qna.question }}</span>
+              </td>
               <td class="answer-col">{{ qna.answer || 'N/A' }}</td>
-              <td>{{ formatDate(qna.createdAt) }}</td>
               <td>{{ formatDate(qna.updatedAt) }}</td>
               <td class="actions">
                 <button class="btn btn-edit" @click="openQnaModal(qna)">✏️ Edit</button>
@@ -776,10 +777,28 @@ onUnmounted(() => {
 
 .question-col,
 .text-col {
-  max-width: 300px;
+  max-width: 400px;
   word-wrap: break-word;
   font-weight: 500;
   color: #333;
+}
+
+.question-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.posted-at {
+  font-size: 0.85rem;
+  color: #999;
+  font-weight: 400;
+}
+
+.question-text {
+  font-weight: 600;
+  color: #333;
+  line-height: 1.5;
 }
 
 .answer-col {

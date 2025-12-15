@@ -37,12 +37,15 @@ public class ScoreService : IScoreService
             if (string.IsNullOrWhiteSpace(passKeyType))
             {
                 query = @"
-                    SELECT team, total_score, time_used_in_seconds
+                    SELECT team, total_score, time_used_in_seconds, answered_question, total_question, maximum_score
                     FROM (
                         SELECT DISTINCT ON (team)
                             team,
                             score as total_score,
-                            time_used_in_seconds
+                            time_used_in_seconds,
+                            answered_question,
+                            total_question,
+                            maximum_score
                         FROM hackathon.answer_log
                         ORDER BY team, score DESC, time_used_in_seconds ASC
                     ) AS best_scores
@@ -51,12 +54,15 @@ public class ScoreService : IScoreService
             else
             {
                 query = @"
-                    SELECT team, total_score, time_used_in_seconds
+                    SELECT team, total_score, time_used_in_seconds, answered_question, total_question, maximum_score
                     FROM (
                         SELECT DISTINCT ON (team)
                             team,
                             score as total_score,
-                            time_used_in_seconds
+                            time_used_in_seconds,
+                            answered_question,
+                            total_question,
+                            maximum_score
                         FROM hackathon.answer_log
                         WHERE pass_key_type = @passKeyType
                         ORDER BY team, score DESC, time_used_in_seconds ASC
@@ -79,7 +85,10 @@ public class ScoreService : IScoreService
                 {
                     Team = reader.GetString(0),
                     TotalScore = reader.GetDecimal(1),
-                    TimeUsedInSeconds = reader.GetDecimal(2)
+                    TimeUsedInSeconds = reader.GetDecimal(2),
+                    AnsweredQuestion = reader.GetInt32(3),
+                    TotalQuestion = reader.GetInt32(4),
+                    MaximumScore = reader.GetDecimal(5)
                 });
             }
 
