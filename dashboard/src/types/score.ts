@@ -2,6 +2,9 @@ export interface Score {
   team: string
   totalScore: number
   timeUsedInSeconds: number
+  answeredQuestion: number
+  totalQuestion: number
+  maximumScore: number
 }
 
 export interface ScoreFilter {

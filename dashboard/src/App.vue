@@ -145,6 +145,18 @@ const formattedTimer = computed(() => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
 
+// Format date for Q&A
+const formatQnaDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  
+  return `${day}/${month}/${year} ${hours}:${minutes}`
+}
+
 let intervalId: number
 let announcementIntervalId: number
 let qnaIntervalId: number
@@ -218,6 +230,7 @@ onUnmounted(() => {
                 <tr>
                   <th>Rank</th>
                   <th>Team</th>
+                  <th>Questions</th>
                   <th>Duration</th>
                   <th>Total Score</th>
                 </tr>
@@ -227,6 +240,7 @@ onUnmounted(() => {
                     :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
                   <td class="rank">{{ index + 1 }}</td>
                   <td class="team-name">{{ score.team }}</td>
+                  <td class="questions">{{ score.answeredQuestion }}/{{ score.totalQuestion }}</td>
                   <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
                   <td class="score">{{ score.totalScore.toFixed(1) }}</td>
                 </tr>
@@ -284,7 +298,10 @@ onUnmounted(() => {
             <transition-group name="qa-fade" tag="div">
               <div v-for="qa in qnaStore.qnaItems" :key="qa.id" class="qa-item">
                 <p class="question"><strong>Q:</strong> {{ qa.question }}</p>
-                <p class="answer"><strong>A:</strong> {{ qa.answer }}</p>
+                <div class="answer-row">
+                  <p class="answer"><strong>A:</strong> {{ qa.answer }}</p>
+                  <span class="posted-at">Posted at: {{ formatQnaDate(qa.createdAt) }}</span>
+                </div>
               </div>
             </transition-group>
           </div>
@@ -602,6 +619,12 @@ onUnmounted(() => {
   color: #cbd5e0;
 }
 
+.questions {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.75rem;
+}
+
 .score {
   font-weight: 700;
   color: #fa4786;
@@ -794,10 +817,26 @@ onUnmounted(() => {
   font-size: 0.75rem;
 }
 
+.answer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
 .answer {
   color: #a0aec0;
   font-size: 0.75rem;
   padding-left: 12px;
+  margin: 0;
+  flex: 1;
+}
+
+.posted-at {
+  font-size: 0.6rem;
+  color: #666;
+  white-space: nowrap;
+  margin-left: auto;
 }
 
 .qr-sponsor-wrapper {
