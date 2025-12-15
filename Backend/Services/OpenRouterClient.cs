@@ -81,7 +81,8 @@ public class OpenRouterClient : IOpenRouterClient
             Messages = new List<OpenRouterMessage>
             {
                 new() { Role = "user", Content = prompt }
-            }
+            },
+            Temperature = 0 // Deterministic evaluation for consistent scoring
         };
 
         _logger.LogInformation("Calling OpenRouter API with model: {Model}", model);
