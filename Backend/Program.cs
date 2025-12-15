@@ -1,12 +1,16 @@
 using AbdulBackend.Middleware;
 using AbdulBackend.Services;
 
-// Load environment variables from .env file
+// Load environment variables from .env file FIRST
 var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
 if (File.Exists(envFilePath))
 {
     DotNetEnv.Env.Load(envFilePath);
 }
+
+// Set environment from .env before creating builder
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +52,8 @@ builder.Services.AddScoped<IQnaService, QnaService>();
 builder.Services.AddScoped<IScoreService, ScoreService>();
 builder.Services.AddScoped<ITeamApiClient, TeamApiClient>();
 builder.Services.AddScoped<IOpenRouterClient, OpenRouterClient>();
+builder.Services.AddScoped<IBedrockService, BedrockService>();
+builder.Services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -60,10 +66,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure Kestrel to listen on port 5000
+// Configure Kestrel to listen on port 5001 for development, 5000 for production
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5000);
+    var port = builder.Environment.IsDevelopment() ? 5001 : 5000;
+    options.ListenAnyIP(port);
 });
 
 var app = builder.Build();
