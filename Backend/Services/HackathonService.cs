@@ -391,6 +391,23 @@ public class HackathonService : IHackathonService
 
     private HackathonResponse BuildResponse(string uuid, TeamPassKey teamPassKey, int totalQuestions, List<QuestionResult> results, decimal timeUsedInSeconds)
     {
+        // Mask expected answers for finalist and present pass key types
+        var processedResults = results;
+        if (teamPassKey.PassKeyType.Equals("finalist", StringComparison.OrdinalIgnoreCase) ||
+            teamPassKey.PassKeyType.Equals("present", StringComparison.OrdinalIgnoreCase))
+        {
+            processedResults = results.Select(r => new QuestionResult
+            {
+                No = r.No,
+                Question = r.Question,
+                ExpectedAnswer = "-",  // Hide expected answer
+                ActualAnswer = r.ActualAnswer,
+                Score = r.Score
+            }).ToList();
+            
+            _logger.LogInformation("Masked expected answers for PassKeyType: {PassKeyType}", teamPassKey.PassKeyType);
+        }
+        
         var response = new HackathonResponse
         {
             Uuid = uuid,
@@ -399,13 +416,13 @@ public class HackathonService : IHackathonService
             TimeUsedInSeconds = timeUsedInSeconds,
             TotalQuestion = totalQuestions,
             MaximumScore = totalQuestions,
-            AnsweredQuestion = results.Count,
-            Score = results.Sum(r => r.Score),
-            Results = results
+            AnsweredQuestion = processedResults.Count,
+            Score = processedResults.Sum(r => r.Score),
+            Results = processedResults
         };
 
         _logger.LogInformation("Built response: UUID={Uuid}, Time={TimeUsed:F2}s/{Max}s, Answered={Answered}/{Total}, Score={Score:F2}/{Max}",
-            uuid, timeUsedInSeconds, teamPassKey.MaxDurationInSeconds, results.Count, totalQuestions, response.Score, totalQuestions);
+            uuid, timeUsedInSeconds, teamPassKey.MaxDurationInSeconds, processedResults.Count, totalQuestions, response.Score, totalQuestions);
 
         return response;
     }
