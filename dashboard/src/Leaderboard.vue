@@ -170,7 +170,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap');
 
 * {
   margin: 0;
@@ -318,10 +318,10 @@ onUnmounted(() => {
 .score-table thead th {
   background: linear-gradient(135deg, #fa4786 0%, #002d72 100%);
   color: white;
-  padding: 0.4rem;
+  padding: 0.1rem;
   text-align: left;
   font-weight: 700;
-  font-size: 0.6rem;
+  font-size: 0.9rem;
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   box-shadow: 0 2px 10px rgba(250, 71, 134, 0.3);
   position: sticky;
@@ -349,33 +349,38 @@ onUnmounted(() => {
 }
 
 .score-table tbody td {
-  padding: 0.4rem;
-  font-size: 0.6rem;
+  padding: 0.2rem;
+  font-size: 1.0rem;
   color: #e2e8f0;
+  font-family: 'Sarabun', sans-serif;
 }
 
 .rank {
   font-weight: 700;
-  font-size: 0.6rem;
+  font-size: 1.0rem;
+  font-family: 'Sarabun', sans-serif;
 }
 
 .team-name {
   font-weight: 600;
   color: #cbd5e0;
-  font-size: 0.6rem;
+  font-size: 1.0rem;
 }
 
 .questions {
   font-weight: 600;
   color: #e2e8f0;
-  font-size: 0.6rem;
+  font-size: 1.0rem;
+  font-family: 'Sarabun', sans-serif;
 }
 
 .score {
   font-weight: 700;
   color: #fa4786;
-  font-size: 0.6rem;
+  font-size: 1.0rem;
   text-shadow: 0 0 5px rgba(250, 71, 134, 0.5);
+  font-family: 'Sarabun', sans-serif;
+  text-align: center;
 }
 
 .first-place {
