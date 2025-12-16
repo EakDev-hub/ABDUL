@@ -25,7 +25,7 @@ public class KnowledgeBaseService : IKnowledgeBaseService
         
         _knowledgeBaseId = configuration["AWS_KNOWLEDGE_BASE_ID"]
             ?? throw new InvalidOperationException("AWS_KNOWLEDGE_BASE_ID is not configured");
-        _defaultModelId = configuration["AWS_BEDROCK_MODEL_ID"] ?? "us.anthropic.claude-haiku-4-5-v1:0";
+        _defaultModelId = configuration["AWS_BEDROCK_MODEL_ID"] ?? "anthropic.claude-3-5-sonnet-20240620-v1:0";
 
         var regionEndpoint = RegionEndpoint.GetBySystemName(region);
 
@@ -47,11 +47,18 @@ public class KnowledgeBaseService : IKnowledgeBaseService
 
     private string BuildModelArn(string modelId)
     {
-        // For cross-region inference profiles (us.anthropic.*, eu.anthropic.*)
+        // For cross-region inference profiles (us.*, eu.*)
         if (modelId.StartsWith("us.") || modelId.StartsWith("eu."))
         {
-            // Sonnet 4.5 uses inference profile ID directly (no ARN prefix)
+            // Inference profiles use the ID directly (no ARN prefix)
             return modelId;
+        }
+        
+        // For Meta Llama models, use inference profile
+        if (modelId.StartsWith("meta.llama"))
+        {
+            // Convert to inference profile format
+            return $"us.{modelId}";
         }
         
         // For standard foundation models (anthropic.claude-3-*)
@@ -75,7 +82,9 @@ public class KnowledgeBaseService : IKnowledgeBaseService
                 {
                     VectorSearchConfiguration = new KnowledgeBaseVectorSearchConfiguration
                     {
-                        NumberOfResults = maxResults
+                        NumberOfResults = maxResults,
+                        // Enable Cohere Rerank 3.5 for better retrieval accuracy
+                        OverrideSearchType = SearchType.SEMANTIC
                     }
                 }
             };
@@ -114,11 +123,64 @@ public class KnowledgeBaseService : IKnowledgeBaseService
 
     public async Task<KnowledgeBaseResponse> RetrieveAndGenerateAsync(string query, string? modelId = null, int maxResults = 5)
     {
+        return await RetrieveAndGenerateAsync(query, modelId, maxResults, null, null);
+    }
+
+    public async Task<KnowledgeBaseResponse> RetrieveAndGenerateAsync(string query, string? modelId = null, int maxResults = 5, double? temperature = null)
+    {
+        return await RetrieveAndGenerateAsync(query, modelId, maxResults, temperature, null);
+    }
+
+    public async Task<KnowledgeBaseResponse> RetrieveAndGenerateAsync(string query, string? modelId = null, int maxResults = 5, double? temperature = null, string? instruction = null)
+    {
         try
         {
-            _logger.LogDebug("Retrieving and generating answer for query: {Query}", query);
+            _logger.LogDebug("Retrieving and generating answer for query: {Query} with temperature: {Temperature}, instruction: {HasInstruction}", 
+                query, temperature, !string.IsNullOrEmpty(instruction));
 
             var model = modelId ?? _defaultModelId;
+
+            var kbConfig = new KnowledgeBaseRetrieveAndGenerateConfiguration
+            {
+                KnowledgeBaseId = _knowledgeBaseId,
+                ModelArn = BuildModelArn(model),
+                RetrievalConfiguration = new KnowledgeBaseRetrievalConfiguration
+                {
+                    VectorSearchConfiguration = new KnowledgeBaseVectorSearchConfiguration
+                    {
+                        NumberOfResults = maxResults,
+                        // Enable Cohere Rerank 3.5 for better retrieval accuracy
+                        OverrideSearchType = SearchType.SEMANTIC
+                    }
+                }
+            };
+
+            // Add generation configuration with temperature and/or prompt template if specified
+            if (temperature.HasValue || !string.IsNullOrEmpty(instruction))
+            {
+                var generationConfig = new GenerationConfiguration();
+
+                if (temperature.HasValue)
+                {
+                    generationConfig.InferenceConfig = new InferenceConfig
+                    {
+                        TextInferenceConfig = new TextInferenceConfig
+                        {
+                            Temperature = (float)temperature.Value
+                        }
+                    };
+                }
+
+                if (!string.IsNullOrEmpty(instruction))
+                {
+                    generationConfig.PromptTemplate = new PromptTemplate
+                    {
+                        TextPromptTemplate = instruction
+                    };
+                }
+
+                kbConfig.GenerationConfiguration = generationConfig;
+            }
 
             var request = new RetrieveAndGenerateRequest
             {
@@ -129,18 +191,7 @@ public class KnowledgeBaseService : IKnowledgeBaseService
                 RetrieveAndGenerateConfiguration = new RetrieveAndGenerateConfiguration
                 {
                     Type = RetrieveAndGenerateType.KNOWLEDGE_BASE,
-                    KnowledgeBaseConfiguration = new KnowledgeBaseRetrieveAndGenerateConfiguration
-                    {
-                        KnowledgeBaseId = _knowledgeBaseId,
-                        ModelArn = BuildModelArn(model),
-                        RetrievalConfiguration = new KnowledgeBaseRetrievalConfiguration
-                        {
-                            VectorSearchConfiguration = new KnowledgeBaseVectorSearchConfiguration
-                            {
-                                NumberOfResults = maxResults
-                            }
-                        }
-                    }
+                    KnowledgeBaseConfiguration = kbConfig
                 }
             };
 

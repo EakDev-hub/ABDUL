@@ -22,7 +22,7 @@ public class BedrockService : IBedrockService
             ?? throw new InvalidOperationException("AWS_SECRET_ACCESS_KEY is not configured");
         var sessionToken = configuration["AWS_SESSION_TOKEN"];
         var region = configuration["AWS_REGION"] ?? configuration["AWS_DEFAULT_REGION"] ?? "us-east-1";
-        _defaultModelId = configuration["AWS_BEDROCK_MODEL_ID"] ?? "us.anthropic.claude-haiku-4-5-v1:0";
+        _defaultModelId = configuration["AWS_BEDROCK_MODEL_ID"] ?? "anthropic.claude-3-5-sonnet-20240620-v1:0";
 
         var regionEndpoint = RegionEndpoint.GetBySystemName(region);
         
