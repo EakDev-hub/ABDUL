@@ -230,7 +230,6 @@ onUnmounted(() => {
                 <tr>
                   <th>Rank</th>
                   <th>Team</th>
-                  <th>Questions</th>
                   <th>Duration</th>
                   <th>Total Score</th>
                 </tr>
@@ -240,7 +239,6 @@ onUnmounted(() => {
                     :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
                   <td class="rank">{{ index + 1 }}</td>
                   <td class="team-name">{{ score.team }}</td>
-                  <td class="questions">{{ score.answeredQuestion }}/{{ score.totalQuestion }}</td>
                   <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
                   <td class="score">{{ score.totalScore.toFixed(1) }}</td>
                 </tr>
@@ -327,7 +325,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap');
 
 * {
   margin: 0;
@@ -580,7 +578,7 @@ onUnmounted(() => {
   padding: 6px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   box-shadow: 0 2px 10px rgba(250, 71, 134, 0.3);
 }
@@ -605,13 +603,15 @@ onUnmounted(() => {
 
 .scoreboard-table tbody td {
   padding: 6px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #e2e8f0;
+  font-family: 'Sarabun', sans-serif;
 }
 
 .rank {
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-family: 'Sarabun', sans-serif;
 }
 
 .team-name {
@@ -619,16 +619,12 @@ onUnmounted(() => {
   color: #cbd5e0;
 }
 
-.questions {
-  font-weight: 600;
-  color: #e2e8f0;
-  font-size: 0.75rem;
-}
-
 .score {
   font-weight: 700;
   color: #fa4786;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-family: 'Sarabun', sans-serif;
+  text-align: center;
 }
 
 .first-place {
