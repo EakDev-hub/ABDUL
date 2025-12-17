@@ -23,11 +23,14 @@ Instructions:
 1. PRIORITY: Use exact matches from search results first
 2. If multiple results match, combine information for comprehensive answer
 3. If no exact match: find the closest related information (70%+ similarity threshold)
-4. ALWAYS cite which search result you used when possible
+4. Do NOT mention search result numbers or citations in your answer
 5. If search results don't contain the answer, say 'ไม่พบข้อมูลในฐานความรู้' (not found in knowledge base)
 6. Include relevant links/references when available
 7. Answer in Thai language, be concise and direct
 8. Focus on factual accuracy over creative interpretation
+9. Limit your answer to 200 characters maximum
+10. If the answer contains numbers, always put the number first before any explanation
+11. RULE: Collateral Return Eligibility - Deny if ANY active contracts exist - Require ALL contracts to be closed - Always respond with standard message
 
 Answer the question based on the search results above.";
 
@@ -60,7 +63,7 @@ Answer the question based on the search results above.";
         {
             _logger.LogInformation("Accuracy test question: {Question}", request.Question);
 
-            var answer = await GetAnswerWithRetryAsync(request.Question, request.Instruction);
+            var (answer, isSuggestion, temperature) = await GetAnswerWithRetryAsync(request.Question, request.Instruction);
 
             if (string.IsNullOrEmpty(answer))
             {
@@ -71,11 +74,14 @@ Answer the question based on the search results above.";
                 });
             }
 
-            _logger.LogInformation("Answer generated: {Answer}", answer);
+            _logger.LogInformation("Answer generated: {Answer} (Suggestion: {IsSuggestion}, Temp: {Temperature})", 
+                answer, isSuggestion, temperature);
 
             return Ok(new AccuracyTestResponse
             {
-                Answer = answer
+                Answer = answer,
+                IsSuggestion = isSuggestion,
+                Temperature = temperature
             });
         }
         catch (Exception ex)
@@ -126,13 +132,15 @@ Answer the question based on the search results above.";
                     var questionIndex = i + index;
                     try
                     {
-                        var answer = await GetAnswerWithRetryAsync(question, request.Instruction);
+                        var (answer, isSuggestion, temperature) = await GetAnswerWithRetryAsync(question, request.Instruction);
                         return new AccuracyTestBatchResult
                         {
                             Index = questionIndex,
                             Question = question,
                             Answer = answer ?? "Unable to retrieve answer",
-                            Success = !string.IsNullOrEmpty(answer)
+                            Success = !string.IsNullOrEmpty(answer),
+                            IsSuggestion = isSuggestion,
+                            Temperature = temperature
                         };
                     }
                     catch (Exception ex)
@@ -169,7 +177,7 @@ Answer the question based on the search results above.";
         }
     }
 
-    private async Task<string?> GetAnswerWithRetryAsync(string question, string? instruction = null)
+    private async Task<(string? answer, bool isSuggestion, double temperature)> GetAnswerWithRetryAsync(string question, string? instruction = null)
     {
         // Preprocess query for better retrieval (minimal overhead)
         var processedQuestion = PreprocessQuery(question);
@@ -178,12 +186,12 @@ Answer the question based on the search results above.";
         var finalInstruction = instruction ?? DefaultInstruction;
 
         // OPTIMIZED FOR SPEED: Reduced chunks, optimal temperature
-        // Use maxResults = 50 for faster retrieval (sweet spot for speed/accuracy)
+        // Use maxResults = 80 for faster retrieval (sweet spot for speed/accuracy)
         // Use temperature = 0.2 for highly deterministic, accurate answers
         var kbResponse = await _knowledgeBaseService.RetrieveAndGenerateAsync(
             processedQuestion,
             modelId: null,
-            maxResults: 50,
+            maxResults: 80,
             temperature: 0.2,
             instruction: finalInstruction
         );
@@ -192,25 +200,25 @@ Answer the question based on the search results above.";
         {
             var errorMsg = kbResponse.Error ?? "Unknown error";
             _logger.LogWarning("Failed to get answer from Knowledge Base: {Error}", errorMsg);
-            return null;
+            return (null, false, 0.2);
         }
 
         var answer = kbResponse.Answer.Trim();
+        var isSuggestion = false;
+        var temperature = 0.2;
 
-        // RETRY DISABLED FOR SPEED - Uncomment if you need higher accuracy at cost of speed
-        /*
-        // Check if answer indicates uncertainty or not found
+        // RETRY ENABLED: Check if answer indicates uncertainty or not found
         if (answer.Contains("ขออภัย", StringComparison.Ordinal) || 
             answer.Contains("ไม่พบข้อมูล", StringComparison.Ordinal) ||
             answer.Contains("ไม่ทราบ", StringComparison.Ordinal))
         {
-            _logger.LogInformation("Answer indicates uncertainty, retrying with different strategy");
+            _logger.LogInformation("Answer indicates uncertainty, retrying with higher temperature (0.7) for suggestion");
 
             var retryResponse = await _knowledgeBaseService.RetrieveAndGenerateAsync(
                 processedQuestion,
                 modelId: null,
-                maxResults: 30,
-                temperature: 0.5,
+                maxResults: 80,
+                temperature: 0.7,
                 instruction: finalInstruction
             );
 
@@ -222,13 +230,14 @@ Answer the question based on the search results above.";
                     !retryAnswer.Contains("ไม่พบข้อมูล", StringComparison.Ordinal))
                 {
                     answer = retryAnswer;
-                    _logger.LogInformation("Retry successful with better answer");
+                    isSuggestion = true;
+                    temperature = 0.7;
+                    _logger.LogInformation("Retry successful with suggestion answer at temperature 0.7");
                 }
             }
         }
-        */
 
-        return answer;
+        return (answer, isSuggestion, temperature);
     }
 
     private string PreprocessQuery(string query)

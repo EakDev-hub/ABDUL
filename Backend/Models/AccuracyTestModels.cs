@@ -9,6 +9,8 @@ public class AccuracyTestRequest
 public class AccuracyTestResponse
 {
     public string Answer { get; set; } = string.Empty;
+    public bool IsSuggestion { get; set; } = false;
+    public double Temperature { get; set; } = 0.2;
 }
 
 public class AccuracyTestBatchRequest
@@ -23,6 +25,8 @@ public class AccuracyTestBatchResult
     public string Question { get; set; } = string.Empty;
     public string Answer { get; set; } = string.Empty;
     public bool Success { get; set; }
+    public bool IsSuggestion { get; set; } = false;
+    public double Temperature { get; set; } = 0.2;
 }
 
 public class AccuracyTestBatchResponse
