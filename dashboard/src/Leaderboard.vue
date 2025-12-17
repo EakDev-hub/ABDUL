@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, type Ref } from 'vue'
 import { leaderboardService } from '@/services/leaderboard.service'
 import type { Score } from '@/types/score'
 import api from '@/services/api'
@@ -13,9 +13,11 @@ const isLoadingBonusround = ref(false)
 // On stage control flag
 const onStage = ref(true) // true = show scoreboard, false = show bonus round
 
-// Track score changes for animations
-const changedTeams = ref<Set<string>>(new Set())
-const previousScores = ref<Map<string, number>>(new Map())
+// Track score changes for animations - separate for each leaderboard
+const scoreboardChangedTeams = ref<Set<string>>(new Set())
+const scoreboardPreviousScores = ref<Map<string, number>>(new Map())
+const bonusroundChangedTeams = ref<Set<string>>(new Set())
+const bonusroundPreviousScores = ref<Map<string, number>>(new Map())
 
 // Format duration from seconds to HH:MM:SS
 const formatDuration = (seconds: number): string => {
@@ -47,8 +49,8 @@ const fetchScoreboardScores = async () => {
     const response = await leaderboardService.getScores('present')
     
     if (response.success && response.data) {
-      // Detect score changes
-      detectScoreChanges(response.data)
+      // Detect score changes for scoreboard
+      detectScoreChanges(response.data, scoreboardPreviousScores, scoreboardChangedTeams)
       scoreboardScores.value = response.data
     }
   } catch (error: any) {
@@ -65,8 +67,8 @@ const fetchBonusroundScores = async () => {
     const response = await leaderboardService.getScores('finalist')
     
     if (response.success && response.data) {
-      // Detect score changes for bonus round too
-      detectScoreChanges(response.data)
+      // Detect score changes for bonus round
+      detectScoreChanges(response.data, bonusroundPreviousScores, bonusroundChangedTeams)
       bonusroundScores.value = response.data
     }
   } catch (error: any) {
@@ -96,15 +98,22 @@ const fetchOnStageFlag = async () => {
   }
 }
 
-// Detect score changes and trigger animations
-const detectScoreChanges = (newScores: Score[]) => {
+// Detect score changes and trigger animations - only when totalScore changes
+const detectScoreChanges = (
+  newScores: Score[],
+  previousScores: Ref<Map<string, number>>,
+  changedTeams: Ref<Set<string>>
+) => {
   const currentChangedTeams = new Set<string>()
   
   newScores.forEach(score => {
     const previousScore = previousScores.value.get(score.team)
     
+    // Only trigger animation if:
+    // 1. We have a previous score for this team (not initial load)
+    // 2. The totalScore has actually changed
     if (previousScore !== undefined && previousScore !== score.totalScore) {
-      // Score changed!
+      // Team's score changed - trigger animation
       currentChangedTeams.add(score.team)
       
       // Remove highlight after 3 seconds
@@ -113,17 +122,22 @@ const detectScoreChanges = (newScores: Score[]) => {
       }, 3000)
     }
     
-    // Update previous score
+    // Always update the stored score for this team
     previousScores.value.set(score.team, score.totalScore)
   })
   
-  // Update changed teams
+  // Update changed teams set
   currentChangedTeams.forEach(team => changedTeams.value.add(team))
 }
 
-// Check if a team has changed score
+// Check if a team has changed score in the currently displayed leaderboard
 const hasScoreChanged = (teamName: string): boolean => {
-  return changedTeams.value.has(teamName)
+  // Check the appropriate leaderboard based on what's currently shown
+  if (onStage.value) {
+    return scoreboardChangedTeams.value.has(teamName)
+  } else {
+    return bonusroundChangedTeams.value.has(teamName)
+  }
 }
 
 let scoreboardIntervalId: number
