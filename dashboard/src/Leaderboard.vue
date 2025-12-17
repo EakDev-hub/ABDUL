@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { leaderboardService } from '@/services/leaderboard.service'
 import type { Score } from '@/types/score'
+import api from '@/services/api'
 
 // Scores for both leaderboards
 const scoreboardScores = ref<Score[]>([])
 const bonusroundScores = ref<Score[]>([])
 const isLoadingScoreboard = ref(false)
 const isLoadingBonusround = ref(false)
+
+// On stage control flag
+const onStage = ref(true) // true = show scoreboard, false = show bonus round
+
+// Track score changes for animations
+const changedTeams = ref<Set<string>>(new Set())
+const previousScores = ref<Map<string, number>>(new Map())
 
 // Format duration from seconds to HH:MM:SS
 const formatDuration = (seconds: number): string => {
@@ -39,6 +47,8 @@ const fetchScoreboardScores = async () => {
     const response = await leaderboardService.getScores('present')
     
     if (response.success && response.data) {
+      // Detect score changes
+      detectScoreChanges(response.data)
       scoreboardScores.value = response.data
     }
   } catch (error: any) {
@@ -55,6 +65,8 @@ const fetchBonusroundScores = async () => {
     const response = await leaderboardService.getScores('finalist')
     
     if (response.success && response.data) {
+      // Detect score changes for bonus round too
+      detectScoreChanges(response.data)
       bonusroundScores.value = response.data
     }
   } catch (error: any) {
@@ -64,17 +76,71 @@ const fetchBonusroundScores = async () => {
   }
 }
 
+// Fetch on_stage flag from DisplayControl API
+const fetchOnStageFlag = async () => {
+  try {
+    const response = await api.get<{
+      success: boolean;
+      data: {
+        onStage: boolean
+      }
+    }>('/api/DisplayControl')
+    
+    if (response.data?.success && response.data.data) {
+      // Directly use the onStage boolean value from API
+      onStage.value = response.data.data.onStage
+    }
+  } catch (error: any) {
+    console.error('Failed to fetch on_stage flag:', error)
+    // Keep current value on error to avoid flickering
+  }
+}
+
+// Detect score changes and trigger animations
+const detectScoreChanges = (newScores: Score[]) => {
+  const currentChangedTeams = new Set<string>()
+  
+  newScores.forEach(score => {
+    const previousScore = previousScores.value.get(score.team)
+    
+    if (previousScore !== undefined && previousScore !== score.totalScore) {
+      // Score changed!
+      currentChangedTeams.add(score.team)
+      
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        changedTeams.value.delete(score.team)
+      }, 3000)
+    }
+    
+    // Update previous score
+    previousScores.value.set(score.team, score.totalScore)
+  })
+  
+  // Update changed teams
+  currentChangedTeams.forEach(team => changedTeams.value.add(team))
+}
+
+// Check if a team has changed score
+const hasScoreChanged = (teamName: string): boolean => {
+  return changedTeams.value.has(teamName)
+}
+
 let scoreboardIntervalId: number
 let bonusroundIntervalId: number
+
+let onStageIntervalId: number
 
 onMounted(() => {
   // Fetch both immediately
   fetchScoreboardScores()
   fetchBonusroundScores()
+  fetchOnStageFlag()
   
   // Poll every 1 second
   scoreboardIntervalId = setInterval(fetchScoreboardScores, 1000)
   bonusroundIntervalId = setInterval(fetchBonusroundScores, 1000)
+  onStageIntervalId = setInterval(fetchOnStageFlag, 2000) // Check on_stage every 2 seconds
 })
 
 onUnmounted(() => {
@@ -83,6 +149,9 @@ onUnmounted(() => {
   }
   if (bonusroundIntervalId) {
     clearInterval(bonusroundIntervalId)
+  }
+  if (onStageIntervalId) {
+    clearInterval(onStageIntervalId)
   }
 })
 </script>
@@ -96,8 +165,8 @@ onUnmounted(() => {
     <img src="./assets/images/logo.png" alt="Logo" class="floating-logo" />
     
     <main class="main-content">
-      <!-- SCOREBOARD -->
-      <section class="board navy-board">
+      <!-- SCOREBOARD - shown when on_stage is true -->
+      <section v-if="onStage" class="board navy-board single-board">
         <h2 class="board-title">SCOREBOARD</h2>
         
         <!-- Loading / Empty States -->
@@ -113,7 +182,7 @@ onUnmounted(() => {
           <!-- Podium Top 3 -->
           <div class="podium">
             <!-- 2nd Place -->
-            <div class="podium-card silver" v-if="scoreboardTop3[1]">
+            <div class="podium-card silver" v-if="scoreboardTop3[1]" :class="{ 'score-changed': hasScoreChanged(scoreboardTop3[1].team) }">
               <div class="podium-rank">2</div>
               <div class="podium-team">{{ scoreboardTop3[1].team }}</div>
               <div class="podium-score">{{ scoreboardTop3[1].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
@@ -121,7 +190,7 @@ onUnmounted(() => {
             </div>
             
             <!-- 1st Place (Center, Tallest) -->
-            <div class="podium-card gold" v-if="scoreboardTop3[0]">
+            <div class="podium-card gold" v-if="scoreboardTop3[0]" :class="{ 'score-changed': hasScoreChanged(scoreboardTop3[0].team) }">
               <div class="podium-rank">1</div>
               <div class="podium-team">{{ scoreboardTop3[0].team }}</div>
               <div class="podium-score">{{ scoreboardTop3[0].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
@@ -129,7 +198,7 @@ onUnmounted(() => {
             </div>
             
             <!-- 3rd Place -->
-            <div class="podium-card bronze" v-if="scoreboardTop3[2]">
+            <div class="podium-card bronze" v-if="scoreboardTop3[2]" :class="{ 'score-changed': hasScoreChanged(scoreboardTop3[2].team) }">
               <div class="podium-rank">3</div>
               <div class="podium-team">{{ scoreboardTop3[2].team }}</div>
               <div class="podium-score">{{ scoreboardTop3[2].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
@@ -139,7 +208,7 @@ onUnmounted(() => {
           
           <!-- Rows for 4-15 -->
           <div class="rest-rows">
-            <div class="row-card" v-for="(score, idx) in scoreboardRest" :key="score.team">
+            <div class="row-card" v-for="(score, idx) in scoreboardRest" :key="score.team" :class="{ 'score-changed': hasScoreChanged(score.team) }">
               <span class="row-rank">{{ idx + 4 }}</span>
               <span class="row-team">{{ score.team }}</span>
               <span class="row-stats">Q: {{ score.answeredQuestion }}/{{ score.totalQuestion }} · Time: {{ formatDuration(score.timeUsedInSeconds) }}</span>
@@ -149,8 +218,8 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- BONUS ROUND -->
-      <section class="board pink-board">
+      <!-- BONUS ROUND - shown when on_stage is false -->
+      <section v-if="!onStage" class="board pink-board single-board">
         <h2 class="board-title">BONUS ROUND</h2>
         
         <!-- Loading / Empty States -->
@@ -164,21 +233,21 @@ onUnmounted(() => {
         <div v-else class="board-content">
           <!-- Podium Top 3 -->
           <div class="podium">
-            <div class="podium-card silver" v-if="bonusTop3[1]">
+            <div class="podium-card silver" v-if="bonusTop3[1]" :class="{ 'score-changed': hasScoreChanged(bonusTop3[1].team) }">
               <div class="podium-rank">2</div>
               <div class="podium-team">{{ bonusTop3[1].team }}</div>
               <div class="podium-score">{{ bonusTop3[1].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
               <div class="podium-stats">Q: {{ bonusTop3[1].answeredQuestion }}/{{ bonusTop3[1].totalQuestion }} · Time: {{ formatDuration(bonusTop3[1].timeUsedInSeconds) }}</div>
             </div>
             
-            <div class="podium-card gold" v-if="bonusTop3[0]">
+            <div class="podium-card gold" v-if="bonusTop3[0]" :class="{ 'score-changed': hasScoreChanged(bonusTop3[0].team) }">
               <div class="podium-rank">1</div>
               <div class="podium-team">{{ bonusTop3[0].team }}</div>
               <div class="podium-score">{{ bonusTop3[0].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
               <div class="podium-stats">Q: {{ bonusTop3[0].answeredQuestion }}/{{ bonusTop3[0].totalQuestion }} · Time: {{ formatDuration(bonusTop3[0].timeUsedInSeconds) }}</div>
             </div>
             
-            <div class="podium-card bronze" v-if="bonusTop3[2]">
+            <div class="podium-card bronze" v-if="bonusTop3[2]" :class="{ 'score-changed': hasScoreChanged(bonusTop3[2].team) }">
               <div class="podium-rank">3</div>
               <div class="podium-team">{{ bonusTop3[2].team }}</div>
               <div class="podium-score">{{ bonusTop3[2].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
@@ -188,7 +257,7 @@ onUnmounted(() => {
           
           <!-- Rows for 4-15 -->
           <div class="rest-rows">
-            <div class="row-card bonus" v-for="(score, idx) in bonusRest" :key="score.team">
+            <div class="row-card bonus" v-for="(score, idx) in bonusRest" :key="score.team" :class="{ 'score-changed': hasScoreChanged(score.team) }">
               <span class="row-rank">{{ idx + 4 }}</span>
               <span class="row-team">{{ score.team }}</span>
               <span class="row-stats">Q: {{ score.answeredQuestion }}/{{ score.totalQuestion }} · Time: {{ formatDuration(score.timeUsedInSeconds) }}</span>
@@ -284,6 +353,14 @@ onUnmounted(() => {
   gap: 1vw;
   padding: 0.5vh 1vw;
   overflow: hidden;
+}
+
+/* Single board takes full width when only one is shown */
+.single-board {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 /* BOARD */
@@ -548,5 +625,35 @@ onUnmounted(() => {
   padding: 4px;
   border-radius: 5px;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+}
+
+/* Score change animation */
+@keyframes scoreChange {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 25px currentColor, 0 0 40px currentColor;
+  }
+}
+
+.score-changed {
+  animation: scoreChange 0.8s ease-in-out, pulseGlow 1.5s ease-in-out 3;
+}
+
+.score-changed .podium-score,
+.score-changed .row-score {
+  animation: scoreChange 0.8s ease-in-out;
 }
 </style>
