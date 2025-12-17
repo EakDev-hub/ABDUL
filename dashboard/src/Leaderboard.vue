@@ -355,12 +355,12 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* Single board takes full width when only one is shown */
+/* Single board takes 60% width and centered when only one is shown */
 .single-board {
   grid-column: 1 / -1;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
+  width: 60%;
+  max-width: 60%;
+  margin: 0 auto;
 }
 
 /* BOARD */
@@ -431,10 +431,10 @@ onUnmounted(() => {
 /* PODIUM - Top 3 Cards */
 .podium {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: flex-end;
-  gap: 0.8vw;
-  height: 22vh; /* Reverted to 22vh */
+  gap: 1%;
+  height: 22vh;
   padding: 0;
 }
 
@@ -451,7 +451,7 @@ onUnmounted(() => {
 }
 
 .podium-card.gold {
-  width: 30%;
+  width: 36%;
   height: 100%;
   background: rgba(255, 215, 0, 0.15);
   color: #ffd700;
@@ -459,7 +459,7 @@ onUnmounted(() => {
 }
 
 .podium-card.silver {
-  width: 26%;
+  width: 32%;
   height: 80%;
   background: rgba(192, 192, 192, 0.15);
   color: #e0e0e0;
@@ -467,7 +467,7 @@ onUnmounted(() => {
 }
 
 .podium-card.bronze {
-  width: 26%;
+  width: 32%;
   height: 75%;
   background: rgba(205, 127, 50, 0.15);
   color: #e8a86c;
@@ -485,10 +485,13 @@ onUnmounted(() => {
   font-weight: 700;
   font-size: 2vh;
   margin: 0.3vh 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: center;
   max-width: 100%;
+  line-height: 1.2;
+  padding: 0 0.5vw;
 }
 
 .podium-score {
