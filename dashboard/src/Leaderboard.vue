@@ -27,7 +27,12 @@ const sortedBonusroundScores = computed(() => {
   return [...bonusroundScores.value].sort((a, b) => b.totalScore - a.totalScore)
 })
 
-// Fetch scoreboard scores (passKeyType = 'present')
+// Split into Top 3 and Rest
+const scoreboardTop3 = computed(() => sortedScoreboardScores.value.slice(0, 3))
+const scoreboardRest = computed(() => sortedScoreboardScores.value.slice(3))
+const bonusTop3 = computed(() => sortedBonusroundScores.value.slice(0, 3))
+const bonusRest = computed(() => sortedBonusroundScores.value.slice(3))
+
 const fetchScoreboardScores = async () => {
   try {
     isLoadingScoreboard.value = true
@@ -53,7 +58,7 @@ const fetchBonusroundScores = async () => {
       bonusroundScores.value = response.data
     }
   } catch (error: any) {
-    console.error('Failed to fetch bonusround scores:', error)
+    console.error('Failed to fetch bonus round scores:', error)
   } finally {
     isLoadingBonusround.value = false
   }
@@ -84,470 +89,464 @@ onUnmounted(() => {
 
 <template>
   <div class="leaderboard-page">
-    <img src="./assets/images/logo.png" alt="Logo" class="page-logo" />
+    <div class="bg-grid"></div>
+    <div class="vignette"></div>
     
-    <div class="leaderboard-container">
-      <!-- Scoreboard Section -->
-      <div class="leaderboard-section">
-        <h1 class="section-title">📊 SCOREBOARD</h1>
-        <div v-if="isLoadingScoreboard && scoreboardScores.length === 0" class="table-container">
+    <!-- Floating Logo -->
+    <img src="./assets/images/logo.png" alt="Logo" class="floating-logo" />
+    
+    <main class="main-content">
+      <!-- SCOREBOARD -->
+      <section class="board navy-board">
+        <h2 class="board-title">SCOREBOARD</h2>
+        
+        <!-- Loading / Empty States -->
+        <div v-if="isLoadingScoreboard && scoreboardScores.length === 0" class="loading-container">
           <div class="loading-message">Loading scoreboard...</div>
         </div>
-        <div v-else-if="scoreboardScores.length === 0 && !isLoadingScoreboard" class="table-container">
+        <div v-else-if="scoreboardScores.length === 0 && !isLoadingScoreboard" class="loading-container">
           <div class="loading-message">No teams have submitted yet.</div>
         </div>
-        <div v-else class="table-container">
-          <table class="score-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Questions</th>
-                <th>Duration</th>
-                <th>Total Score</th>
-              </tr>
-            </thead>
-            <transition-group name="score-fade" tag="tbody">
-              <tr v-for="(score, index) in sortedScoreboardScores" :key="score.team"
-                  :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
-                <td class="rank">{{ index + 1 }}</td>
-                <td class="team-name">{{ score.team }}</td>
-                <td class="questions">{{ score.answeredQuestion }}/{{ score.totalQuestion }}</td>
-                <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
-                <td class="score">{{ score.totalScore.toFixed(1) }}</td>
-              </tr>
-            </transition-group>
-          </table>
+        
+        <!-- Content -->
+        <div v-else class="board-content">
+          <!-- Podium Top 3 -->
+          <div class="podium">
+            <!-- 2nd Place -->
+            <div class="podium-card silver" v-if="scoreboardTop3[1]">
+              <div class="podium-rank">2</div>
+              <div class="podium-team">{{ scoreboardTop3[1].team }}</div>
+              <div class="podium-score">{{ scoreboardTop3[1].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
+              <div class="podium-stats">Q: {{ scoreboardTop3[1].answeredQuestion }}/{{ scoreboardTop3[1].totalQuestion }} · Time: {{ formatDuration(scoreboardTop3[1].timeUsedInSeconds) }}</div>
+            </div>
+            
+            <!-- 1st Place (Center, Tallest) -->
+            <div class="podium-card gold" v-if="scoreboardTop3[0]">
+              <div class="podium-rank">1</div>
+              <div class="podium-team">{{ scoreboardTop3[0].team }}</div>
+              <div class="podium-score">{{ scoreboardTop3[0].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
+              <div class="podium-stats">Q: {{ scoreboardTop3[0].answeredQuestion }}/{{ scoreboardTop3[0].totalQuestion }} · Time: {{ formatDuration(scoreboardTop3[0].timeUsedInSeconds) }}</div>
+            </div>
+            
+            <!-- 3rd Place -->
+            <div class="podium-card bronze" v-if="scoreboardTop3[2]">
+              <div class="podium-rank">3</div>
+              <div class="podium-team">{{ scoreboardTop3[2].team }}</div>
+              <div class="podium-score">{{ scoreboardTop3[2].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
+              <div class="podium-stats">Q: {{ scoreboardTop3[2].answeredQuestion }}/{{ scoreboardTop3[2].totalQuestion }} · Time: {{ formatDuration(scoreboardTop3[2].timeUsedInSeconds) }}</div>
+            </div>
+          </div>
+          
+          <!-- Rows for 4-15 -->
+          <div class="rest-rows">
+            <div class="row-card" v-for="(score, idx) in scoreboardRest" :key="score.team">
+              <span class="row-rank">{{ idx + 4 }}</span>
+              <span class="row-team">{{ score.team }}</span>
+              <span class="row-stats">Q: {{ score.answeredQuestion }}/{{ score.totalQuestion }} · Time: {{ formatDuration(score.timeUsedInSeconds) }}</span>
+              <span class="row-score">{{ score.totalScore.toFixed(1) }} <span class="pts">pts.</span></span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Bonusround Section -->
-      <div class="leaderboard-section">
-        <h1 class="section-title">🎯 BONUS ROUND</h1>
-        <div v-if="isLoadingBonusround && bonusroundScores.length === 0" class="table-container">
+      <!-- BONUS ROUND -->
+      <section class="board pink-board">
+        <h2 class="board-title">BONUS ROUND</h2>
+        
+        <!-- Loading / Empty States -->
+        <div v-if="isLoadingBonusround && bonusroundScores.length === 0" class="loading-container">
           <div class="loading-message">Loading bonus round...</div>
         </div>
-        <div v-else-if="bonusroundScores.length === 0 && !isLoadingBonusround" class="table-container">
+        <div v-else-if="bonusroundScores.length === 0 && !isLoadingBonusround" class="loading-container">
           <div class="loading-message">No teams have submitted yet.</div>
         </div>
-        <div v-else class="table-container">
-          <table class="score-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Questions</th>
-                <th>Duration</th>
-                <th>Total Score</th>
-              </tr>
-            </thead>
-            <transition-group name="score-fade" tag="tbody">
-              <tr v-for="(score, index) in sortedBonusroundScores" :key="score.team"
-                  :class="{ 'first-place': index === 0, 'second-place': index === 1, 'third-place': index === 2 }">
-                <td class="rank">{{ index + 1 }}</td>
-                <td class="team-name">{{ score.team }}</td>
-                <td class="questions">{{ score.answeredQuestion }}/{{ score.totalQuestion }}</td>
-                <td>{{ formatDuration(score.timeUsedInSeconds) }}</td>
-                <td class="score">{{ score.totalScore.toFixed(1) }}</td>
-              </tr>
-            </transition-group>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- Sponsor Section -->
-    <div class="sponsor-footer">
-      <p class="sponsor-title">Sponsored by</p>
-      <div class="sponsor-logo-container">
-        <img src="./assets/images/sponsor/viriyah.png" alt="Viriyah" class="sponsor-logo" />
-        <img src="./assets/images/sponsor/mtl.png" alt="MTL" class="sponsor-logo" />
-        <img src="./assets/images/sponsor/aws.png" alt="AWS" class="sponsor-logo" />
-        <img src="./assets/images/sponsor/ngernturbo.png" alt="Ngern Turbo" class="sponsor-logo" />
+        <div v-else class="board-content">
+          <!-- Podium Top 3 -->
+          <div class="podium">
+            <div class="podium-card silver" v-if="bonusTop3[1]">
+              <div class="podium-rank">2</div>
+              <div class="podium-team">{{ bonusTop3[1].team }}</div>
+              <div class="podium-score">{{ bonusTop3[1].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
+              <div class="podium-stats">Q: {{ bonusTop3[1].answeredQuestion }}/{{ bonusTop3[1].totalQuestion }} · Time: {{ formatDuration(bonusTop3[1].timeUsedInSeconds) }}</div>
+            </div>
+            
+            <div class="podium-card gold" v-if="bonusTop3[0]">
+              <div class="podium-rank">1</div>
+              <div class="podium-team">{{ bonusTop3[0].team }}</div>
+              <div class="podium-score">{{ bonusTop3[0].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
+              <div class="podium-stats">Q: {{ bonusTop3[0].answeredQuestion }}/{{ bonusTop3[0].totalQuestion }} · Time: {{ formatDuration(bonusTop3[0].timeUsedInSeconds) }}</div>
+            </div>
+            
+            <div class="podium-card bronze" v-if="bonusTop3[2]">
+              <div class="podium-rank">3</div>
+              <div class="podium-team">{{ bonusTop3[2].team }}</div>
+              <div class="podium-score">{{ bonusTop3[2].totalScore.toFixed(1) }} <span class="pts">pts.</span></div>
+              <div class="podium-stats">Q: {{ bonusTop3[2].answeredQuestion }}/{{ bonusTop3[2].totalQuestion }} · Time: {{ formatDuration(bonusTop3[2].timeUsedInSeconds) }}</div>
+            </div>
+          </div>
+          
+          <!-- Rows for 4-15 -->
+          <div class="rest-rows">
+            <div class="row-card bonus" v-for="(score, idx) in bonusRest" :key="score.team">
+              <span class="row-rank">{{ idx + 4 }}</span>
+              <span class="row-team">{{ score.team }}</span>
+              <span class="row-stats">Q: {{ score.answeredQuestion }}/{{ score.totalQuestion }} · Time: {{ formatDuration(score.timeUsedInSeconds) }}</span>
+              <span class="row-score">{{ score.totalScore.toFixed(1) }} <span class="pts">pts.</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="sponsor-bar">
+      <span class="sponsor-text">SPONSORED BY</span>
+      <div class="logos">
+        <img src="./assets/images/sponsor/viriyah.png" alt="Viriyah" class="logo" />
+        <img src="./assets/images/sponsor/mtl.png" alt="MTL" class="logo" />
+        <img src="./assets/images/sponsor/aws.png" alt="AWS" class="logo" />
+        <img src="./assets/images/sponsor/ngernturbo.png" alt="Ngern Turbo" class="logo" />
       </div>
-    </div>
+    </footer>
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  --navy: #002d72;
+  --pink: #ff0066;
+  --gold: #ffd700;
+  --silver: #c0c0c0;
+  --bronze: #cd7f32;
 }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 .leaderboard-page {
-  min-height: 100vh;
+  width: 100vw;
   height: 100vh;
-  background:
-    linear-gradient(0deg, rgba(0, 45, 114, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 45, 114, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, #000814 0%, #000000 100%);
-  background-size: 50px 50px, 50px 50px, 100% 100%;
-  background-position: 0 0, 0 0, center;
-  background-attachment: fixed;
-  padding: 1rem;
-  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
-  position: relative;
+  background: linear-gradient(160deg, #050010 0%, #0a0020 50%, #050010 100%);
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  position: relative;
 }
 
-.leaderboard-page::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    linear-gradient(180deg,
-      rgba(250, 71, 134, 0.03) 0%,
-      transparent 50%,
-      rgba(0, 45, 114, 0.03) 100%
-    );
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(rgba(255,0,102,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,0,102,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: 0;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 40%, #000 100%);
   pointer-events: none;
   z-index: 1;
 }
 
-.page-logo {
+/* FLOATING LOGO */
+.floating-logo {
   position: absolute;
-  top: 1rem;
-  right: 1.5rem;
-  height: min(12vh, 12vw);
-  width: min(12vh, 12vw);
-  filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 40px rgba(0, 45, 114, 0.4));
+  top: 1.5vh;
+  right: 2vw;
+  height: 10vh;
+  z-index: 100;
+  filter: drop-shadow(0 0 8px #ff0066) drop-shadow(0 0 20px #ff006660);
+  animation: floatPulse 4s ease-in-out infinite, glowPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes floatPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glowPulse {
+  0% { filter: drop-shadow(0 0 6px #ff0066) drop-shadow(0 0 15px #ff006650); }
+  100% { filter: drop-shadow(0 0 12px #ff0066) drop-shadow(0 0 30px #ff006680); }
+}
+
+/* MAIN */
+.main-content {
   z-index: 10;
-  object-fit: contain;
-  animation: logoPulse 3s ease-in-out infinite;
-}
-
-@keyframes logoPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 40px rgba(0, 45, 114, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 0 30px rgba(250, 71, 134, 0.8)) drop-shadow(0 0 50px rgba(0, 45, 114, 0.6));
-  }
-}
-
-.leaderboard-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  flex: 1;
-  position: relative;
-  z-index: 2;
+  gap: 1vw;
+  padding: 0.5vh 1vw;
   overflow: hidden;
-  max-height: calc(100vh - 10rem);
 }
 
-.leaderboard-section {
-  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow:
-    0 0 20px rgba(250, 71, 134, 0.4),
-    0 0 40px rgba(0, 45, 114, 0.3),
-    inset 0 0 20px rgba(0, 45, 114, 0.1);
-  border: 3px solid #fa4786;
-  border-image: linear-gradient(45deg, #fa4786, #002d72, #fa4786) 1;
-  overflow: hidden;
+/* BOARD */
+.board {
   display: flex;
   flex-direction: column;
-  position: relative;
+  gap: 0.5vh; /* Reduced from 1vh */
 }
 
-.leaderboard-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(250, 71, 134, 0.1),
-    transparent
-  );
-  animation: slideLight 3s infinite;
-}
-
-@keyframes slideLight {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-.section-title {
-  color: #fa4786;
-  margin-bottom: 0.8rem;
-  font-size: 0.85rem;
+.board-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5vh;
   text-align: center;
-  flex-shrink: 0;
-  text-shadow:
-    0 0 10px rgba(250, 71, 134, 0.8),
-    0 0 20px rgba(250, 71, 134, 0.6),
-    0 0 30px rgba(0, 45, 114, 0.4);
-  position: relative;
-  z-index: 1;
-  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.board-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.5vh;
+  overflow: hidden;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.loading-message {
+  font-family: 'Orbitron';
+  font-size: 2vh;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
   letter-spacing: 2px;
 }
 
-.table-container {
-  overflow-x: auto;
-  overflow-y: auto;
-  flex: 1;
-  position: relative;
-  z-index: 1;
+.navy-board .board-title {
+  color: #fff;
+  text-shadow: 
+    0 0 5px #00aaff,
+    0 0 10px #00aaff,
+    0 0 20px #00aaff,
+    0 0 40px #002d72;
+  font-weight: 900;
+  border-bottom: 2px solid #00aaff;
+  box-shadow: 0 10px 20px -10px rgba(0, 170, 255, 0.5);
+  display: inline-block;
+  padding-bottom: 5px;
 }
 
-.score-table {
-  width: 100%;
-  border-collapse: collapse;
+.pink-board .board-title {
+  color: #fff;
+  text-shadow: 
+    0 0 5px #ff0066,
+    0 0 10px #ff0066,
+    0 0 20px #ff0066,
+    0 0 40px #ff0066;
+  font-weight: 900;
+  border-bottom: 2px solid #ff0066;
+  box-shadow: 0 10px 20px -10px rgba(255, 0, 102, 0.5);
+  display: inline-block;
+  padding-bottom: 5px;
 }
 
-.score-table thead th {
-  background: linear-gradient(135deg, #fa4786 0%, #002d72 100%);
-  color: white;
-  padding: 0.1rem;
-  text-align: left;
-  font-weight: 700;
-  font-size: 0.9rem;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 2px 10px rgba(250, 71, 134, 0.3);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* PODIUM - Top 3 Cards */
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.8vw;
+  height: 22vh; /* Reverted to 22vh */
+  padding: 0;
 }
 
-.score-table thead th:first-child {
-  border-top-left-radius: 10px;
-}
-
-.score-table thead th:last-child {
-  border-top-right-radius: 10px;
-}
-
-.score-table tbody tr {
-  border-bottom: 1px solid rgba(0, 45, 114, 0.3);
-  transition: all 0.3s;
-}
-
-.score-table tbody tr:hover {
-  background: linear-gradient(90deg, rgba(250, 71, 134, 0.15) 0%, rgba(0, 45, 114, 0.15) 100%);
-  box-shadow: 0 0 15px rgba(250, 71, 134, 0.3);
-  transform: translateX(5px);
-}
-
-.score-table tbody td {
-  padding: 0.2rem;
-  font-size: 1.0rem;
-  color: #e2e8f0;
-  font-family: 'Sarabun', sans-serif;
-}
-
-.rank {
-  font-weight: 700;
-  font-size: 1.0rem;
-  font-family: 'Sarabun', sans-serif;
-}
-
-.team-name {
-  font-weight: 600;
-  color: #cbd5e0;
-  font-size: 1.0rem;
-}
-
-.questions {
-  font-weight: 600;
-  color: #e2e8f0;
-  font-size: 1.0rem;
-  font-family: 'Sarabun', sans-serif;
-}
-
-.score {
-  font-weight: 700;
-  color: #fa4786;
-  font-size: 1.0rem;
-  text-shadow: 0 0 5px rgba(250, 71, 134, 0.5);
-  font-family: 'Sarabun', sans-serif;
-  text-align: center;
-}
-
-.first-place {
-  background: rgba(255, 215, 0, 0.15);
-  border-left: 6px solid #ffd700;
-}
-
-.first-place .rank {
-  color: #ffd700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-}
-
-.second-place {
-  background: rgba(192, 192, 192, 0.15);
-  border-left: 6px solid #c0c0c0;
-}
-
-.second-place .rank {
-  color: #c0c0c0;
-  text-shadow: 0 0 10px rgba(192, 192, 192, 0.6);
-}
-
-.third-place {
-  background: rgba(205, 127, 50, 0.15);
-  border-left: 6px solid #cd7f32;
-}
-
-.third-place .rank {
-  color: #cd7f32;
-  text-shadow: 0 0 10px rgba(205, 127, 50, 0.6);
-}
-
-/* Sponsor Footer */
-.sponsor-footer {
+.podium-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(0, 45, 114, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
-  border-radius: 8px;
-  border: 2px solid;
-  border-image: linear-gradient(90deg, #fa4786, #002d72, #fa4786) 1;
+  padding: 1vh 0.8vw; /* Reverted to 1vh */
+  text-align: center;
   position: relative;
-  z-index: 2;
-  margin-top: 0.5rem;
+  border-radius: 8px;
+  border: none;
 }
 
-.sponsor-title {
-  color: #fa4786;
+.podium-card.gold {
+  width: 30%;
+  height: 100%;
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.7), 0 0 25px rgba(255, 215, 0, 0.4);
+}
+
+.podium-card.silver {
+  width: 26%;
+  height: 80%;
+  background: rgba(192, 192, 192, 0.15);
+  color: #e0e0e0;
+  text-shadow: 0 0 10px rgba(192, 192, 192, 0.7), 0 0 25px rgba(192, 192, 192, 0.4);
+}
+
+.podium-card.bronze {
+  width: 26%;
+  height: 75%;
+  background: rgba(205, 127, 50, 0.15);
+  color: #e8a86c;
+  text-shadow: 0 0 10px rgba(205, 127, 50, 0.7), 0 0 25px rgba(205, 127, 50, 0.4);
+}
+
+.podium-rank {
+  font-family: 'Orbitron';
   font-weight: 700;
-  font-size: 0.8rem;
-  text-align: center;
-  text-shadow: 0 0 8px rgba(250, 71, 134, 0.6);
+  font-size: 1.5vh;
+  opacity: 0.7;
 }
 
-.sponsor-logo-container {
+.podium-team {
+  font-weight: 700;
+  font-size: 2vh;
+  margin: 0.3vh 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.podium-score {
+  font-family: 'Orbitron';
+  font-weight: 900;
+  font-size: 3.5vh;
+  /* Use parent card color/glow */
+  color: inherit;
+  text-shadow: inherit;
+}
+
+.pink-board .podium-score {
+  font-size: 3.5vh;
+  /* Use parent card color/glow */
+  color: inherit;
+  text-shadow: inherit;
+}
+
+.podium-stats {
+  font-size: 1.6vh;
+  font-weight: 700;
+  opacity: 1;
+  margin-top: 0.5vh;
+  color: #ddd;
+}
+
+.pts {
+  font-size: 0.6em;
+  opacity: 0.7;
+}
+
+/* REST ROWS - Teams 4-15 */
+.rest-rows {
   display: flex;
-  flex-direction: row;
-  gap: 0.8rem;
+  flex-direction: column;
+  gap: 0.4vh;
+  flex: 1;
+  overflow: hidden;
+}
+
+.row-card {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
+  gap: 1vw;
+  padding: 0.7vh 0.6vw;
+  background: rgba(0,45,114,0.2);
+  border-radius: 4px;
+  border-left: 3px solid #8eb8ff;
 }
 
-.sponsor-logo {
-  height: 50px;
-  width: auto;
-  max-width: 150px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(250, 71, 134, 0.3)) drop-shadow(0 0 20px rgba(0, 45, 114, 0.2));
-  transition: all 0.3s ease;
-  background: white;
-  padding: 4px;
-  border-radius: 6px;
-  border: 2px solid rgba(0, 45, 114, 0.2);
+.row-card.bonus {
+  background: rgba(255,0,102,0.12);
+  border-left: 3px solid #ff0066;
 }
 
-.sponsor-logo:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 20px rgba(250, 71, 134, 0.6)) drop-shadow(0 0 30px rgba(0, 45, 114, 0.4));
-  border-color: rgba(250, 71, 134, 0.4);
-}
-
-/* Loading Message */
-.loading-message {
-  color: #a0aec0;
+.row-rank {
+  font-family: 'Orbitron';
+  font-weight: 700;
+  font-size: 1.8vh;
+  color: #888;
+  min-width: 2vw;
   text-align: center;
-  padding: 3rem;
-  font-size: 1.5rem;
 }
 
-/* Score Transitions */
-.score-fade-enter-active,
-.score-fade-leave-active {
-  transition: all 0.5s ease;
+.row-team {
+  flex: 1;
+  font-weight: 700;
+  font-size: 2vh;
+  color: #8eb8ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 8px rgba(142, 184, 255, 0.8), 0 0 15px rgba(142, 184, 255, 0.4);
 }
 
-.score-fade-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
+.row-card.bonus .row-team {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 0, 102, 0.8), 0 0 15px rgba(255, 0, 102, 0.4);
 }
 
-.score-fade-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
+.row-stats {
+  font-size: 1.7vh;
+  color: #ccc;
+  min-width: 14vw;
+  text-align: center;
+  font-weight: 600;
 }
 
-.score-fade-move {
-  transition: transform 0.5s ease;
+.row-score {
+  font-family: 'Orbitron';
+  font-weight: 900;
+  font-size: 2.2vh;
+  color: #8eb8ff;
+  text-shadow: 0 0 8px rgba(142, 184, 255, 0.8), 0 0 15px rgba(142, 184, 255, 0.4);
+  min-width: 6vw;
+  text-align: right;
 }
 
-/* Scrollbar Styles */
-::-webkit-scrollbar {
-  width: 10px;
+.row-card.bonus .row-score {
+  color: var(--pink);
+  font-size: 2.2vh;
+  text-shadow: 0 0 8px rgba(255, 0, 102, 0.8), 0 0 15px rgba(255, 0, 102, 0.4);
 }
 
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 10px;
+/* FOOTER */
+.sponsor-bar {
+  z-index: 20;
+  background: rgba(0,0,0,0.9);
+  padding: 0.4vh 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2vh;
+  border-top: 1px solid rgba(255,0,102,0.3);
 }
 
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #fa4786 0%, #002d72 100%);
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(250, 71, 134, 0.5);
+.sponsor-text {
+  font-size: 0.9vh;
+  color: var(--pink);
+  letter-spacing: 3px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ff5a96 0%, #003d92 100%);
-  box-shadow: 0 0 10px rgba(250, 71, 134, 0.7);
+.logos {
+  display: flex;
+  gap: 2vw;
+  align-items: center;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .leaderboard-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .section-title {
-    font-size: 2rem;
-  }
-  
-  .score-table tbody td {
-    font-size: 1rem;
-    padding: 0.8rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .leaderboard-page {
-    padding: 0.5rem;
-  }
-  
-  .section-title {
-    font-size: 1.5rem;
-  }
-  
-  .page-logo {
-    height: min(8vh, 8vw);
-    width: min(8vh, 8vw);
-  }
-  
-  .sponsor-logo {
-    height: 40px;
-  }
+.logo {
+  height: 5vh; /* Reduced from 6vh to save vertical space */
+  width: 5vh;
+  object-fit: contain;
+  background: #fff;
+  padding: 4px;
+  border-radius: 5px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
 }
 </style>
