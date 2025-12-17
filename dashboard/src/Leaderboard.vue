@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { leaderboardService } from '@/services/leaderboard.service'
 import type { Score } from '@/types/score'
 import api from '@/services/api'
