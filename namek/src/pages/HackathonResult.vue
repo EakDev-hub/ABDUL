@@ -123,7 +123,7 @@
                 <div class="table-cell cell-answer">{{ item.actualAnswer }}</div>
                 <div class="table-cell cell-score">
                   <span class="score-badge" :class="getScoreClass(item.score)">
-                    {{ item.score.toFixed(1) }}
+                    {{ item.score.toFixed(2) }}
                   </span>
                 </div>
               </div>
@@ -158,10 +158,19 @@ const hackathonStore = useHackathonStore()
 const result = computed(() => hackathonStore.result)
 const errorState = computed(() => hackathonStore.errorState)
 
-// Sort results by score (highest to lowest)
+// Sort results by score (highest to lowest), then by no (highest to lowest) if scores are equal
 const sortedResults = computed(() => {
   if (!result.value?.results) return []
-  return [...result.value.results].sort((a, b) => b.score - a.score)
+  const sorted = [...result.value.results].sort((a, b) => {
+    // เรียงตามคะแนนจากมากไปน้อยก่อน
+    if (b.score !== a.score) {
+      return b.score - a.score
+    }
+    // ถ้าคะแนนเท่ากัน เรียงตาม no จากมากไปน้อย
+    return b.no - a.no
+  })
+
+  return sorted
 })
 
 // Particle animation
