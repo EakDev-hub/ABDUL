@@ -31,7 +31,7 @@
       <!-- Header -->
       <div class="header-section">
         <h1 class="main-title">
-          <span class="glitch" data-text="HACKATHON #2 2025">HACKATHON #2 2025</span>
+          <span class="glitch" data-text="HACKATHON 2025">HACKATHON 2025</span>
         </h1>
         <div class="subtitle-wrapper">
           <div class="tech-line left"></div>
