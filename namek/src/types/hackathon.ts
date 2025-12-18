@@ -14,7 +14,7 @@ export interface QuestionResult {
 
 export interface SubmitResponse {
   uuid: string
-  passKeyType: 'develop' | 'present' | 'finalist'
+  passKeyType: string // Accept any string value from backend
   maxDurationInSecs: number
   timeUsedInSeconds: number
   totalQuestion: number

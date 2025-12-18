@@ -108,18 +108,20 @@
         <div class="results-table-card">
           <div class="table-container">
             <!-- Table Header -->
-            <div class="table-header">
+            <div class="table-header" :class="{ 'with-expected': isDevelopMode }">
               <div class="table-cell header-cell cell-no">No.</div>
               <div class="table-cell header-cell cell-question">Question</div>
+              <div v-if="isDevelopMode" class="table-cell header-cell cell-expected">Expected Answer</div>
               <div class="table-cell header-cell cell-answer">Answer</div>
               <div class="table-cell header-cell cell-score">Score<br/>(0.0 - 1.0)</div>
             </div>
 
             <!-- Table Body -->
             <div class="table-body">
-              <div v-for="item in sortedResults" :key="item.no" class="table-row">
+              <div v-for="item in sortedResults" :key="item.no" class="table-row" :class="{ 'with-expected': isDevelopMode }">
                 <div class="table-cell cell-no">{{ item.no }}</div>
                 <div class="table-cell cell-question">{{ item.question }}</div>
+                <div v-if="isDevelopMode" class="table-cell cell-expected">{{ item.expectedAnswer }}</div>
                 <div class="table-cell cell-answer">{{ item.actualAnswer }}</div>
                 <div class="table-cell cell-score">
                   <span class="score-badge" :class="getScoreClass(item.score)">
@@ -157,6 +159,13 @@ const hackathonStore = useHackathonStore()
 
 const result = computed(() => hackathonStore.result)
 const errorState = computed(() => hackathonStore.errorState)
+
+// Check if passKeyType is develop (to show Expected Answer column)
+const isDevelopMode = computed(() => {
+  const passKeyType = result.value?.passKeyType
+  if (!passKeyType) return false
+  return passKeyType.toLowerCase().trim() === 'develop'
+})
 
 // Sort results by score (highest to lowest), then by no (highest to lowest) if scores are equal
 const sortedResults = computed(() => {
@@ -1236,6 +1245,12 @@ function goBack() {
   min-height: 50px;
 }
 
+/* 5 columns when in develop mode (with Expected Answer) */
+.table-header.with-expected,
+.table-row.with-expected {
+  grid-template-columns: 80px 1fr 1fr 1fr 140px;
+}
+
 .table-header {
   background: rgba(250, 71, 134, 0.08);
   border-bottom: 2px solid rgba(250, 71, 134, 0.3);
@@ -1521,6 +1536,12 @@ function goBack() {
   .table-row {
     grid-template-columns: 60px 1fr 1fr 100px;
     font-size: 0.75rem;
+  }
+
+  /* 5 columns when in develop mode (with Expected Answer) for mobile */
+  .table-header.with-expected,
+  .table-row.with-expected {
+    grid-template-columns: 60px 1fr 1fr 1fr 100px;
   }
 
   .table-cell {
