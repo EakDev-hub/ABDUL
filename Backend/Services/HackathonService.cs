@@ -48,7 +48,7 @@ public class HackathonService : IHackathonService
         
         // Phase 4: Process questions incrementally with real-time saves
         var (results, timeUsedInSeconds) = await ProcessQuestionsIncrementallyAsync(
-            uuid, request.ApiUrl, questions, aiInstruction, teamPassKey.MaxDurationInSeconds);
+            uuid, request.ApiUrl, questions, aiInstruction, teamPassKey.MaxDurationInSeconds, request.Team);
         
         // Phase 5: Build and return response
         return BuildResponse(uuid, teamPassKey, questions.Count, results, timeUsedInSeconds);
@@ -197,7 +197,8 @@ public class HackathonService : IHackathonService
         string apiUrl,
         List<Question> questions,
         AiEvaluationInstruction aiInstruction,
-        int maxDurationInSeconds)
+        int maxDurationInSeconds,
+        string teamName)
     {
         var results = new List<QuestionResult>();
         var stopwatch = new Stopwatch();
@@ -235,7 +236,7 @@ public class HackathonService : IHackathonService
             try
             {
                 actualAnswer = await _teamApiClient.AskQuestionAsync(
-                    apiUrl, question.QuestionText, cts.Token);
+                    apiUrl, question.QuestionText, cts.Token, teamName);
             }
             catch (Exception ex)
             {
