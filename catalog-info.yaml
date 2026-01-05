@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ABDUL
+  annotations:
+    github.com/project-slug: EakDev-hub/ABDUL
+spec:
+  type: other
+  lifecycle: unknown
+  owner: eak
